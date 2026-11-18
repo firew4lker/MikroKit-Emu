@@ -136,6 +136,10 @@ pub struct App {
     selected_text: std::sync::Arc<std::sync::Mutex<Selection>>,
     /// Desktop light/dark preference (winit doesn't report it on Linux).
     system_theme: crate::system_theme::SystemTheme,
+    /// CPU state shown in the status bar / debug panel. While running it is
+    /// refreshed a few times a second; at 60 Hz it is just a blur.
+    shown_cpu: (microkit_emu::cpu::Cpu, f64),
+    started: Instant,
     breakpoints: Vec<u16>,
     bp_text: String,
     mem_addr: String,
@@ -180,6 +184,8 @@ impl App {
             confirm: None,
             selected_text: Default::default(),
             system_theme: crate::system_theme::SystemTheme::watch(cc.egui_ctx.clone()),
+            shown_cpu: (microkit_emu::cpu::Cpu::new(), f64::NEG_INFINITY),
+            started: Instant::now(),
             breakpoints: Vec::new(),
             bp_text: String::new(),
             mem_addr: "2000".into(),
@@ -899,26 +905,49 @@ impl App {
         });
         ui.separator();
         ui.horizontal(|ui| {
-            let c = &self.m.cpu;
-            let flags = flag_string(c.f);
-            ui.label(
-                RichText::new(format!(
-                    "PC={:04X} SP={:04X} A={:02X} {} IE={} SOD={}",
-                    c.pc, c.sp, c.a, flags, c.ie as u8, c.sod as u8
-                ))
-                .monospace()
-                .small(),
-            );
-            ui.separator();
+            let c = self.shown_cpu().clone();
             ui.label(RichText::new(if self.running { "running" } else { "paused" }).small());
             ui.separator();
-            ui.label(RichText::new(&self.status).small());
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.label(
+                    RichText::new(format!(
+                        "PC={:04X} SP={:04X} A={:02X} {} IE={} SOD={}",
+                        c.pc,
+                        c.sp,
+                        c.a,
+                        flag_string(c.f),
+                        c.ie as u8,
+                        c.sod as u8
+                    ))
+                    .monospace()
+                    .small(),
+                )
+                .on_hover_text("CPU registers (updated 4 times a second while running)");
+                ui.separator();
+                ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                    ui.add(egui::Label::new(RichText::new(&self.status).small()).truncate());
+                });
+            });
         });
+    }
+
+    /// The CPU state to display: live when paused, sampled every 0.25 s
+    /// while running.
+    fn shown_cpu(&mut self) -> &microkit_emu::cpu::Cpu {
+        let clock = self.clock_secs();
+        if !self.running || clock - self.shown_cpu.1 >= 0.25 {
+            self.shown_cpu = (self.m.cpu.clone(), clock);
+        }
+        &self.shown_cpu.0
+    }
+
+    fn clock_secs(&self) -> f64 {
+        self.started.elapsed().as_secs_f64()
     }
 
     fn debug_panel(&mut self, ui: &mut egui::Ui) {
         ui.heading("CPU");
-        let c = self.m.cpu.clone();
+        let c = self.shown_cpu().clone();
         egui::Grid::new("regs").num_columns(4).spacing([10.0, 2.0]).show(ui, |ui| {
             let mono = |s: String| RichText::new(s).monospace();
             ui.label(mono(format!("A  {:02X}", c.a)));
