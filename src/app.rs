@@ -10,6 +10,7 @@ use microkit_emu::disasm::disasm;
 use microkit_emu::loader::{self, Image, parse_addr};
 use microkit_emu::machine::{CPU_HZ, J17_CLOCKS, Jumpers, Key, Machine, monitor};
 use microkit_emu::segments;
+use microkit_emu::tape::{Tape, TapeState};
 use microkit_emu::terminal::Terminal;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
@@ -41,6 +42,8 @@ struct Settings {
     force_upper: bool,
     set_pc_after_load: bool,
     show_debug: bool,
+    show_tape: bool,
+    show_ports: bool,
 }
 
 impl Default for Settings {
@@ -54,6 +57,8 @@ impl Default for Settings {
             force_upper: true,
             set_pc_after_load: true,
             show_debug: false,
+            show_tape: false,
+            show_ports: false,
         }
     }
 }
@@ -68,6 +73,11 @@ struct BinDialog {
     path: PathBuf,
     data: Vec<u8>,
     addr: String,
+}
+
+enum Confirm {
+    BlankTape,
+    LoadWav(PathBuf),
 }
 
 struct SaveDialog {
@@ -91,6 +101,7 @@ pub struct App {
     bin_dialog: Option<BinDialog>,
     save_dialog: Option<SaveDialog>,
     show_help: bool,
+    confirm: Option<Confirm>,
     breakpoints: Vec<u16>,
     bp_text: String,
     mem_addr: String,
@@ -132,6 +143,7 @@ impl App {
             bin_dialog: None,
             save_dialog: None,
             show_help: false,
+            confirm: None,
             breakpoints: Vec::new(),
             bp_text: String::new(),
             mem_addr: "2000".into(),
@@ -340,6 +352,7 @@ impl App {
                 self.status = format!("Stopped at breakpoint {:04X}", self.m.cpu.pc);
             }
         }
+        self.m.periodic();
         while let Some(b) = self.m.board.uart.tx_out.pop_front() {
             self.term.feed(b);
         }
@@ -522,7 +535,19 @@ impl App {
                     ui.close();
                 }
             });
+            ui.menu_button("Tape", |ui| {
+                ui.checkbox(&mut self.settings.show_tape, "Show tape recorder");
+                if ui.button("Load WAV…").clicked() {
+                    ui.close();
+                    self.pick_wav();
+                }
+                if ui.add_enabled(!self.m.board.tape.is_empty(), egui::Button::new("Save WAV…")).clicked() {
+                    ui.close();
+                    self.save_wav();
+                }
+            });
             ui.menu_button("Debug", |ui| {
+                ui.checkbox(&mut self.settings.show_ports, "Show I/O ports");
                 ui.checkbox(&mut self.settings.show_debug, "Show debug panel");
                 ui.checkbox(&mut self.settings.set_pc_after_load, "Set GO address after loading a program");
             });
@@ -570,6 +595,8 @@ impl App {
                 });
             ui.label(RichText::new(format!("{:.2} MHz", self.measured_mhz)).weak());
             ui.separator();
+            ui.toggle_value(&mut self.settings.show_tape, "📼 Tape");
+            ui.toggle_value(&mut self.settings.show_ports, "🔌 I/O ports");
             ui.checkbox(&mut self.settings.show_debug, "Debug");
         });
     }
@@ -900,6 +927,270 @@ impl App {
         );
     }
 
+    // ----- tape recorder ------------------------------------------------------
+
+    fn pick_wav(&mut self) {
+        if let Some(p) = rfd::FileDialog::new()
+            .set_title("Load tape (WAV)")
+            .add_filter("WAV audio", &["wav"])
+            .pick_file()
+        {
+            if self.m.board.tape.modified {
+                self.confirm = Some(Confirm::LoadWav(p));
+            } else {
+                self.load_wav(&p);
+            }
+        }
+    }
+
+    fn load_wav(&mut self, p: &Path) {
+        match std::fs::read(p).map_err(|e| e.to_string()).and_then(|b| Tape::from_wav(&b)) {
+            Ok(mut t) => {
+                t.name = Some(file_name(p));
+                let secs = t.seconds(t.len() as f64);
+                self.m.board.tape = t;
+                self.status = format!("Tape loaded: {} ({secs:.1} s)", file_name(p));
+            }
+            Err(e) => self.error("Couldn't load the tape", e),
+        }
+    }
+
+    fn save_wav(&mut self) {
+        self.m.tape_stop();
+        let name = self.m.board.tape.name.clone().unwrap_or_else(|| "tape.wav".into());
+        if let Some(p) = rfd::FileDialog::new()
+            .set_title("Save tape as WAV")
+            .add_filter("WAV audio", &["wav"])
+            .set_file_name(name)
+            .save_file()
+        {
+            match std::fs::write(&p, self.m.board.tape.to_wav()) {
+                Ok(()) => {
+                    self.m.board.tape.modified = false;
+                    self.m.board.tape.name = Some(file_name(&p));
+                    self.status = format!("Tape saved to {}", file_name(&p));
+                }
+                Err(e) => self.error("Couldn't save the tape", e.to_string()),
+            }
+        }
+    }
+
+    fn tape_ui(&mut self, ui: &mut egui::Ui) {
+        if self.m.board.jumpers.j18_db9_2 {
+            ui.horizontal(|ui| {
+                ui.label(RichText::new("J18 routes SID/SOD to DB9-2, so the recorder isn't connected.").color(Color32::from_rgb(0xef, 0x9f, 0x27)));
+                if ui.button("Set J18 to tape").clicked() {
+                    let mut j = self.settings.jumpers.clone();
+                    j.j18_db9_2 = false;
+                    self.set_jumpers(j);
+                }
+            });
+        }
+        let now = self.m.now();
+        let tape = &self.m.board.tape;
+        let pos = tape.position(now).min(tape.len() as f64);
+        let len_s = tape.seconds(tape.len() as f64);
+        let pos_s = tape.seconds(pos);
+        let state = tape.state;
+        ui.horizontal(|ui| {
+            let name = tape.name.clone().unwrap_or_else(|| "(blank tape)".into());
+            let star = if tape.modified { " • unsaved" } else { "" };
+            ui.label(RichText::new(format!("{name}{star}")).strong());
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.label(RichText::new(format!("{} / {}", mmss(pos_s), mmss(len_s))).monospace());
+            });
+        });
+        // waveform strip with the head position
+        let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width().max(300.0), 46.0), Sense::click());
+        let p = ui.painter_at(rect);
+        p.rect_filled(rect, 4.0, TERM_BG);
+        let n = tape.len();
+        if n > 0 {
+            let cols = rect.width() as usize;
+            for c in 0..cols {
+                let a = c * n / cols;
+                let b = ((c + 1) * n / cols).max(a + 1).min(n);
+                let step = ((b - a) / 64).max(1);
+                let peak = (a..b).step_by(step).map(|i| (tape.samples[i] as i32).abs()).max().unwrap_or(0);
+                let h = (peak as f32 / 32767.0) * (rect.height() / 2.0 - 2.0);
+                let x = rect.left() + c as f32 + 0.5;
+                p.line_segment([pos2(x, rect.center().y - h), pos2(x, rect.center().y + h)], Stroke::new(1.0, Color32::from_rgb(0x1d, 0x9e, 0x75)));
+            }
+            let hx = rect.left() + (pos / n as f64) as f32 * rect.width();
+            p.line_segment([pos2(hx, rect.top()), pos2(hx, rect.bottom())], Stroke::new(2.0, LED_ON));
+        } else {
+            p.text(rect.center(), Align2::CENTER_CENTER, "empty — press Record to record", FontId::proportional(12.0), Color32::GRAY);
+        }
+        if resp.clicked() && state == TapeState::Stopped && n > 0 {
+            if let Some(pt) = resp.interact_pointer_pos() {
+                let frac = ((pt.x - rect.left()) / rect.width()).clamp(0.0, 1.0) as f64;
+                self.m.board.tape.seek(frac * len_s);
+            }
+        }
+        ui.horizontal(|ui| {
+            let playing = matches!(state, TapeState::Playing { .. });
+            let recording = matches!(state, TapeState::Recording { .. });
+            if ui.button("⏮").on_hover_text("Rewind").clicked() {
+                let now = self.m.now();
+                self.m.board.tape.rewind(now);
+            }
+            if ui.selectable_label(playing, "▶ Play").clicked() && !playing {
+                self.m.tape_play();
+            }
+            if ui
+                .selectable_label(recording, RichText::new("⏺ Record").color(if recording { LED_ON } else { Color32::PLACEHOLDER }))
+                .on_hover_text("Records from the current position, over anything already there")
+                .clicked()
+                && !recording
+            {
+                self.m.tape_record();
+            }
+            if ui.button("⏹ Stop").clicked() {
+                self.m.tape_stop();
+            }
+            ui.separator();
+            let now = self.m.now();
+            let tape = &self.m.board.tape;
+            let tone_out = recording && now.saturating_sub(tape.last_sod_edge) < CPU_HZ as u64 / 1000;
+            led(ui, tone_out, "MIC");
+            led(ui, tape.sid(now), "EAR");
+        });
+        ui.horizontal(|ui| {
+            if ui.button("Load WAV…").clicked() {
+                self.pick_wav();
+            }
+            if ui.add_enabled(!self.m.board.tape.is_empty(), egui::Button::new("Save WAV…")).clicked() {
+                self.save_wav();
+            }
+            if ui.add_enabled(!self.m.board.tape.is_empty(), egui::Button::new("Blank tape")).clicked() {
+                if self.m.board.tape.modified {
+                    self.confirm = Some(Confirm::BlankTape);
+                } else {
+                    self.m.board.tape.clear();
+                }
+            }
+        });
+        ui.label(
+            RichText::new(
+                "Write: GO 1000 EX (keypad) or W (terminal); press Record, then the last EX / Return.\n\
+                 Read: rewind, GO 1300 EX or R; press Play, then the last EX / Return.",
+            )
+            .weak()
+            .small(),
+        );
+    }
+
+    // ----- I/O ports -------------------------------------------------------------
+
+    fn ports_ui(&mut self, ui: &mut egui::Ui) {
+        let csr = self.m.board.pio.csr;
+        let pc_mode = match (csr >> 2) & 3 {
+            0 => "input (ALT1)",
+            3 => "output (ALT2)",
+            1 => "handshake for A (ALT3)",
+            _ => "handshake for A and B (ALT4)",
+        };
+        ui.label(RichText::new("8155 (IC12) — connector X2").strong());
+        ui.label(RichText::new(format!("CSR = {csr:02X}H · PC: {pc_mode}")).small().weak());
+        egui::Grid::new("ports").num_columns(3).spacing([8.0, 6.0]).show(ui, |ui| {
+            for (idx, name, bits) in [(0usize, "PA (41H)", 8u8), (1, "PB (42H)", 8), (2, "PC (43H)", 6)] {
+                let output = match idx {
+                    0 => csr & 1 != 0,
+                    1 => csr & 2 != 0,
+                    _ => csr & 0x0C == 0x0C,
+                };
+                ui.label(RichText::new(name).monospace());
+                let value = if output { self.m.board.pio.out[idx] } else { self.m.board.pio.ext_in[idx] };
+                ui.horizontal(|ui| {
+                    for bit in (0..bits).rev() {
+                        let on = value & (1 << bit) != 0;
+                        if output {
+                            led(ui, on, &bit.to_string());
+                        } else if bit_switch(ui, on, &bit.to_string()) {
+                            self.m.board.pio.ext_in[idx] ^= 1 << bit;
+                        }
+                    }
+                });
+                let mask = if bits == 8 { 0xFF } else { 0x3F };
+                ui.label(
+                    RichText::new(format!("{:02X}H {}", value & mask, if output { "out" } else { "in" })).monospace(),
+                );
+                ui.end_row();
+            }
+        });
+        ui.label(RichText::new("Outputs are LEDs; inputs are switches you can click.").weak().small());
+        ui.separator();
+        ui.label(RichText::new("Input port 0FH (IC21) — connector X3").strong());
+        ui.horizontal(|ui| {
+            for bit in [2u8, 1] {
+                let on = self.m.board.x3_in & (1 << bit) != 0;
+                if bit_switch(ui, on, &format!("D{bit}")) {
+                    self.m.board.x3_in ^= 1 << bit;
+                }
+            }
+            ui.add_space(8.0);
+            led(ui, !self.settings.jumpers.j16_terminal, "D0");
+            ui.label(RichText::new("D0 = J16 (0 = terminal monitor)").weak().small());
+        });
+        ui.separator();
+        let (count, mode) = self.m.board.pio.timer_setting();
+        let mode_s = ["single square wave", "square wave", "single pulse", "continuous pulses"][mode as usize & 3];
+        let run = if self.m.board.pio.timer_running() { "running" } else { "stopped" };
+        ui.label(
+            RichText::new(format!("Timer: count {count} ({count:04X}H), {mode_s}, {run} → TRAP via J13"))
+                .small(),
+        );
+    }
+
+    fn tool_windows(&mut self, ctx: &egui::Context) {
+        let mut show = self.settings.show_tape;
+        if show {
+            egui::Window::new("📼 Tape recorder")
+                .open(&mut show)
+                .resizable(false)
+                .default_width(380.0)
+                .default_pos(pos2(400.0, 120.0))
+                .show(ctx, |ui| self.tape_ui(ui));
+            self.settings.show_tape = show;
+        }
+        let mut show = self.settings.show_ports;
+        if show {
+            egui::Window::new("🔌 I/O ports")
+                .open(&mut show)
+                .resizable(false)
+                .default_pos(pos2(420.0, 360.0))
+                .show(ctx, |ui| self.ports_ui(ui));
+            self.settings.show_ports = show;
+        }
+        if let Some(c) = &self.confirm {
+            let what = match c {
+                Confirm::BlankTape => "Erase the tape?",
+                Confirm::LoadWav(_) => "Replace the tape?",
+            };
+            let mut answer = None;
+            egui::Window::new(what).collapsible(false).resizable(false).show(ctx, |ui| {
+                ui.label("The current tape has a recording you haven't saved.");
+                ui.horizontal(|ui| {
+                    if ui.button("Discard recording").clicked() {
+                        answer = Some(true);
+                    }
+                    if ui.button("Cancel").clicked() {
+                        answer = Some(false);
+                    }
+                });
+            });
+            if let Some(yes) = answer {
+                let c = self.confirm.take().unwrap();
+                if yes {
+                    match c {
+                        Confirm::BlankTape => self.m.board.tape.clear(),
+                        Confirm::LoadWav(p) => self.load_wav(&p),
+                    }
+                }
+            }
+        }
+    }
+
     fn dialogs(&mut self, ctx: &egui::Context) {
         if let Some((title, text)) = self.message.clone() {
             let mut open = true;
@@ -1018,6 +1309,7 @@ impl eframe::App for App {
         }
         egui::CentralPanel::default_margins().show(ui, |ui| self.terminal(ui));
         self.dialogs(&ctx);
+        self.tool_windows(&ctx);
         if !self.running {
             // keep the cursor blinking and the display live
             ctx.request_repaint_after(std::time::Duration::from_millis(250));
@@ -1065,9 +1357,35 @@ Loading programs:
 /// True if the primary button was clicked inside `rect` this frame (without
 /// registering a widget that would steal clicks from the children).
 fn clicked_inside(ui: &egui::Ui, rect: Rect) -> bool {
-    ui.input(|i| {
-        i.pointer.primary_clicked() && i.pointer.interact_pos().is_some_and(|p| rect.contains(p))
-    })
+    let Some(p) = ui.input(|i| if i.pointer.primary_clicked() { i.pointer.interact_pos() } else { None }) else {
+        return false;
+    };
+    // ignore clicks on windows floating above this area
+    rect.contains(p) && ui.ctx().layer_id_at(p).is_none_or(|l| l == ui.layer_id())
+}
+
+fn mmss(secs: f64) -> String {
+    format!("{:02}:{:04.1}", (secs / 60.0) as u32, secs % 60.0)
+}
+
+/// A small LED with a caption underneath.
+fn led(ui: &mut egui::Ui, on: bool, caption: &str) {
+    let (rect, _) = ui.allocate_exact_size(vec2(22.0, 30.0), Sense::hover());
+    let c = pos2(rect.center().x, rect.top() + 8.0);
+    ui.painter().circle_filled(c, 6.5, if on { LED_ON } else { LED_OFF });
+    ui.painter().text(pos2(c.x, rect.bottom() - 6.0), Align2::CENTER_CENTER, caption, FontId::proportional(10.0), ui.visuals().weak_text_color());
+}
+
+/// A clickable bit switch; returns true when clicked.
+fn bit_switch(ui: &mut egui::Ui, on: bool, caption: &str) -> bool {
+    let (rect, resp) = ui.allocate_exact_size(vec2(22.0, 30.0), Sense::click());
+    let r = Rect::from_center_size(pos2(rect.center().x, rect.top() + 8.0), vec2(12.0, 16.0));
+    let p = ui.painter();
+    p.rect_filled(r, 3.0, if on { Color32::from_rgb(0x37, 0x8a, 0xdd) } else { Color32::from_gray(70) });
+    let knob = if on { Rect::from_min_size(r.min, vec2(12.0, 8.0)) } else { Rect::from_min_size(pos2(r.min.x, r.center().y), vec2(12.0, 8.0)) };
+    p.rect_filled(knob.shrink(1.5), 2.0, Color32::from_gray(230));
+    p.text(pos2(rect.center().x, rect.bottom() - 6.0), Align2::CENTER_CENTER, caption, FontId::proportional(10.0), ui.visuals().weak_text_color());
+    resp.on_hover_text(if on { "1 — click to set 0" } else { "0 — click to set 1" }).clicked()
 }
 
 fn key_hint(k: Key) -> &'static str {

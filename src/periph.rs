@@ -174,6 +174,11 @@ impl I8155 {
         self.running
     }
 
+    /// (14-bit count, 2-bit mode) as last written to ports 44H/45H.
+    pub fn timer_setting(&self) -> (u16, u8) {
+        (self.count_reg & 0x3FFF, self.mode())
+    }
+
     pub fn write_io(&mut self, reg: u8, v: u8, now: u64) {
         match reg {
             0 => {

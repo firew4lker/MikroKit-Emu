@@ -7,4 +7,5 @@ pub mod loader;
 pub mod machine;
 pub mod periph;
 pub mod segments;
+pub mod tape;
 pub mod terminal;

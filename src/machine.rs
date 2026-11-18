@@ -3,6 +3,7 @@
 
 use crate::cpu::{Bus, Cpu, IntLines};
 use crate::periph::{I8155, I8251, I8279, SerialLine};
+use crate::tape::Tape;
 
 pub const CPU_HZ: u32 = 3_072_000;
 
@@ -83,6 +84,11 @@ pub struct Board {
     pub db9_2: SerialLine,
     pub jumpers: Jumpers,
     pub sod: bool,
+    /// Last SID level the CPU read (for the activity LED).
+    pub sid_level: bool,
+    pub tape: Tape,
+    /// Inputs on connector X3 → port 0FH bits 1 and 2 (bit 0 is J16).
+    pub x3_in: u8,
     trap_edge: bool,
 }
 
@@ -97,6 +103,9 @@ impl Board {
             db9_2: SerialLine::new((CPU_HZ / 9600) as u64),
             jumpers: Jumpers::default(),
             sod: false,
+            sid_level: true,
+            tape: Tape::default(),
+            x3_in: 0b110,
             trap_edge: false,
         }
     }
@@ -144,7 +153,7 @@ impl Bus for Board {
     fn input(&mut self, port: u8, now: u64) -> u8 {
         self.uart.update(now);
         match port & 0xF8 {
-            0x08 => 0xFE | (!self.jumpers.j16_terminal) as u8,
+            0x08 => 0xF8 | (self.x3_in & 0b110) | (!self.jumpers.j16_terminal) as u8,
             0x18 => {
                 if port & 1 != 0 {
                     self.uart.read_status(now)
@@ -184,14 +193,14 @@ impl Bus for Board {
         }
     }
     fn sid(&mut self, now: u64) -> bool {
-        if self.jumpers.j18_db9_2 {
-            self.db9_2.level(now)
-        } else {
-            true // tape input idle
-        }
+        self.sid_level = if self.jumpers.j18_db9_2 { self.db9_2.level(now) } else { self.tape.sid(now) };
+        self.sid_level
     }
-    fn sod(&mut self, level: bool, _now: u64) {
+    fn sod(&mut self, level: bool, now: u64) {
         self.sod = level;
+        if !self.jumpers.j18_db9_2 {
+            self.tape.sod(level, now);
+        }
     }
 }
 
@@ -254,6 +263,12 @@ impl Machine {
         n
     }
 
+    /// Housekeeping that doesn't need to run every instruction.
+    pub fn periodic(&mut self) {
+        let now = self.cpu.cycles;
+        self.board.tape.update(now);
+    }
+
     /// Run for at least `cycles` clock cycles, stopping early at a breakpoint.
     /// Returns true if a breakpoint was hit.
     pub fn run_for(&mut self, cycles: u64, breakpoints: &[u16]) -> bool {
@@ -265,6 +280,26 @@ impl Machine {
             }
         }
         false
+    }
+
+    pub fn now(&self) -> u64 {
+        self.cpu.cycles
+    }
+
+    pub fn tape_play(&mut self) {
+        let now = self.cpu.cycles;
+        self.board.tape.play(now);
+    }
+
+    pub fn tape_record(&mut self) {
+        let now = self.cpu.cycles;
+        let sod = self.board.sod;
+        self.board.tape.record(now, sod);
+    }
+
+    pub fn tape_stop(&mut self) {
+        let now = self.cpu.cycles;
+        self.board.tape.stop(now);
     }
 
     /// The six digits of the display: raw 8279 RAM bytes 0..6.
