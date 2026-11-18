@@ -275,7 +275,7 @@ impl App {
     fn send_file(&mut self, port: u8) {
         let Some(path) = rfd::FileDialog::new()
             .set_title(format!("Send file to DB9-{port}"))
-            .add_filter("Intel HEX or 8085 source", &["hex", "ihx", "asm", "a85", "txt"])
+            .add_filter("Intel HEX, 8085 source or BASIC text", &["hex", "ihx", "asm", "a85", "bas", "txt"])
             .add_filter("All files", &["*"])
             .pick_file()
         else {
@@ -293,6 +293,16 @@ impl App {
                 Err(e) => return self.error("Couldn't read the file", e.to_string()),
             },
         };
+        let typed = matches!(ext_of(&path).as_str(), "bas" | "txt");
+        if typed && port == 1 {
+            // text for BASIC (or the monitor): type it at a person's pace so
+            // every line gets stored before the next one arrives
+            let t = text.replace("\r\n", "\n").replace('\n', "\r");
+            let t = if self.settings.force_upper { t.to_ascii_uppercase() } else { t };
+            self.send_terminal(t.as_bytes());
+            self.status = format!("Typing {} into the terminal…", file_name(&path));
+            return;
+        }
         let bytes: Vec<u8> = text.replace("\r\n", "\n").replace('\n', "\r\n").into_bytes();
         if port == 1 {
             self.m.board.uart.receive(&bytes);
@@ -399,6 +409,9 @@ impl App {
         }
         let (events, time) = ctx.input(|i| (i.events.clone(), i.time));
         for ev in events {
+            if std::env::var_os("MICROKIT_DEBUG").is_some() {
+                eprintln!("event {ev:?}");
+            }
             match (self.target, ev) {
                 (_, Event::Key { key: EKey::F9, pressed: true, .. }) => self.press(Key::Reset, time),
                 (_, Event::Key { key: EKey::F10, pressed: true, .. }) => self.press(Key::Vi, time),
@@ -1342,6 +1355,11 @@ Built-in ROM programs (GO address EX):
 Terminal (set J16 on, then RS): click the terminal and type.
   Commands must be capitals; 'Type in capitals' does that for you.
   Enter = CR, Esc = ESC, Ctrl+C = ^C, Ctrl+S/Q = XOFF/XON.
+
+Tiny BASIC (needs the ROM roms/monitor-basic.bin, J16 on):
+  File → Load monitor ROM, press RS, type B in the terminal.
+  BYE returns to the monitor; B again keeps your program.
+  Send HEX → DB9-1 with a .bas file types the program in.
 
 Loading programs:
   File → Load program, the toolbar, or drag a file onto the window.

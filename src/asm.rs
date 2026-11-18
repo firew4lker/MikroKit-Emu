@@ -537,8 +537,11 @@ impl Assembler {
             }
             for b in out {
                 if let Some(b) = b {
-                    if self.final_pass {
-                        img.bytes.insert(pc, b);
+                    if self.final_pass && img.bytes.insert(pc, b).is_some() {
+                        return Err(AsmError {
+                            line,
+                            msg: format!("address {pc:04X} is assigned twice (overlapping ORG areas)"),
+                        });
                     }
                 }
                 pc = pc.wrapping_add(1);
@@ -674,6 +677,12 @@ mod tests {
         let out = assemble("X EQU (1 SHL 4) + 0AH - 2*3\n DB X, HIGH 1234H, LOW 1234H, 1010B, 17Q\n").unwrap();
         let b: Vec<u8> = out.image.bytes.values().copied().collect();
         assert_eq!(b, vec![20, 0x12, 0x34, 10, 15]);
+    }
+
+    #[test]
+    fn overlapping_org_is_an_error() {
+        let e = assemble(" ORG 100H\n DB 1,2,3\n ORG 101H\n DB 9\n").err().unwrap();
+        assert_eq!(e.line, 4);
     }
 
     #[test]

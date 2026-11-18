@@ -58,6 +58,45 @@ microkit-emu [--rom PATH] [--terminal | --keypad] [--debug] [program.hex|.asm|.b
 
 See `examples/` for small programs.
 
+## Tiny BASIC ROM
+
+`roms/monitor-basic.asm` is the original monitor 5.12 plus **Palo Alto Tiny
+BASIC 2.0** (Li-Chen Wang, Roger Rauskolb, 1976, "@COPYLEFT ALL WRONGS
+RESERVED"), squeezed into the ROM's free areas (18E1H–1FFFH and
+10FBH–12FFH). `roms/monitor-basic.bin` is the same thing as an 8 KB image,
+ready for a 2764 EPROM. The keypad monitor, the terminal monitor and the
+programs at 1000H/1300H/1600H/1800H are unchanged.
+
+```bash
+cargo run --release -- --terminal --rom roms/monitor-basic.bin
+```
+
+Type `B` at the terminal monitor's `.` prompt. BASIC uses the user RAM
+2000H–3FFFH (about 7.9 KB for programs). `BYE` returns to the monitor, and
+`B` comes back with the program still there.
+
+- Statements: `LET` (optional), `PRINT`, `INPUT`, `IF` (no `THEN`),
+  `GOTO`, `GOSUB`/`RETURN`, `FOR`/`NEXT`/`STEP`, `REM`, `STOP`, plus
+  `POKE addr,val`, `OUT port,val`, `BYE`.
+- Commands: `RUN`, `LIST [n]`, `NEW`. Ctrl+C stops a program.
+- Functions: `RND(n)`, `ABS(n)`, `SIZE`, `PEEK(addr)`, `IN(port)`.
+- 16-bit integers, variables `A`–`Z` and the array `@(i)`. Statements can
+  be shortened with a dot: `P.` = `PRINT`. `#` means "not equal".
+- Example: `examples/leds.bas` counts on the 8155 port A LEDs. Send it with
+  *Send HEX → DB9-1* (`.bas` files are typed in at a person's pace).
+
+Changes to the monitor: the `B` command and its help line (the repeated
+footer of help page 2 made room for it), the sign-on text, and help page 2
+now ends with a proper 00. To rebuild the image after editing the source:
+
+```bash
+cargo run --release -- --assemble roms/monitor-basic.asm -o roms/monitor-basic.bin
+```
+
+The `--assemble` option assembles any 8085 source (`-o file.bin` gives the
+8 KB ROM image, `-o file.hex` Intel HEX, `--symbols` prints the symbol
+table).
+
 ## How faithful is it
 
 - The CPU counts clock cycles exactly at 3.072 MHz, so the monitor's
@@ -77,6 +116,8 @@ See `examples/` for small programs.
   because the monitor's output routine reads and discards input that arrives
   while it prints (on the real board, typing ahead loses characters).
   File sends go at full line speed.
+- Typing in the terminal: spaces, Enter, Backspace, Esc, Ctrl+C/S/Q and
+  paste all go to the kit.
 - Not yet emulated: the DB9-2 transmit side (SOD as a serial port), the
   8155 handshake modes (ALT3/ALT4) and port interrupts, memory options
   other than 2764 + 6264.
