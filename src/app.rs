@@ -182,6 +182,7 @@ impl App {
             mem_addr: "2000".into(),
             last_loaded: None,
         };
+        cc.egui_ctx.set_visuals_of(egui::Theme::Light, light_visuals());
         cc.egui_ctx.set_theme(app.settings.theme.preference());
         cc.egui_ctx.add_plugin(SelectionWatcher(app.selected_text.clone()));
         app.m.board.jumpers = app.settings.jumpers.clone();
@@ -789,7 +790,11 @@ impl App {
             .fill(bg)
             .corner_radius(8)
             .inner_margin(egui::Margin::same(10))
-            .stroke(if focused { Stroke::new(2.0, fg) } else { Stroke::new(1.0, Color32::from_gray(120)) });
+            .stroke(if focused {
+                Stroke::new(2.0, if ui.visuals().dark_mode { fg } else { Color32::from_rgb(0x18, 0x5f, 0xa5) })
+            } else {
+                Stroke::new(1.0, Color32::from_gray(120))
+            });
         let avail = ui.available_height() - 22.0;
         let selecting = has_text_selection(ui.ctx());
         let mut action: Option<TermAction> = None;
@@ -1091,7 +1096,8 @@ impl App {
     fn tape_ui(&mut self, ui: &mut egui::Ui) {
         if self.m.board.jumpers.j18_db9_2 {
             ui.horizontal(|ui| {
-                ui.label(RichText::new("J18 routes SID/SOD to DB9-2, so the recorder isn't connected.").color(Color32::from_rgb(0xef, 0x9f, 0x27)));
+                let warn = ui.visuals().warn_fg_color;
+                ui.label(RichText::new("J18 routes SID/SOD to DB9-2, so the recorder isn't connected.").color(warn));
                 if ui.button("Set J18 to tape").clicked() {
                     let mut j = self.settings.jumpers.clone();
                     j.j18_db9_2 = false;
@@ -1515,11 +1521,53 @@ impl egui::Plugin for SelectionWatcher {
     }
 }
 
+/// egui's stock light theme is low-contrast (grey 80 text, thin glyphs,
+/// pale buttons). This one keeps the same layout with darker text, heavier
+/// glyph rendering, a warm grey background and visible control outlines.
+fn light_visuals() -> egui::Visuals {
+    use egui::epaint::FontColorTransferFunction;
+    let rgb = Color32::from_rgb;
+    let ink = rgb(0x1a, 0x1a, 0x18);
+    let mut v = egui::Visuals::light();
+    v.text_options.color_transfer_function = FontColorTransferFunction::Gamma(0.7);
+    v.panel_fill = rgb(0xe8, 0xe6, 0xdf);
+    v.window_fill = rgb(0xf4, 0xf3, 0xee);
+    v.window_stroke = Stroke::new(1.0, rgb(0x9a, 0x97, 0x8e));
+    v.faint_bg_color = rgb(0xdd, 0xda, 0xd2);
+    v.extreme_bg_color = Color32::WHITE;
+    v.code_bg_color = rgb(0xdc, 0xd9, 0xd0);
+    v.weak_text_color = Some(rgb(0x55, 0x54, 0x4f));
+    v.warn_fg_color = rgb(0xa8, 0x4a, 0x00);
+    v.error_fg_color = rgb(0xb4, 0x14, 0x14);
+    v.hyperlink_color = rgb(0x0b, 0x5c, 0xad);
+    v.selection.bg_fill = rgb(0x9c, 0xc3, 0xee);
+    v.selection.stroke = Stroke::new(1.0, rgb(0x0a, 0x36, 0x6a));
+    let w = &mut v.widgets;
+    w.noninteractive.weak_bg_fill = v.panel_fill;
+    w.noninteractive.bg_fill = v.panel_fill;
+    w.noninteractive.bg_stroke = Stroke::new(1.0, rgb(0xa8, 0xa5, 0x9c));
+    w.noninteractive.fg_stroke = Stroke::new(1.0, ink);
+    w.inactive.weak_bg_fill = rgb(0xd6, 0xd3, 0xca);
+    w.inactive.bg_fill = rgb(0xd6, 0xd3, 0xca);
+    w.inactive.bg_stroke = Stroke::new(1.0, rgb(0x9a, 0x97, 0x8e));
+    w.inactive.fg_stroke = Stroke::new(1.0, ink);
+    w.hovered.weak_bg_fill = rgb(0xc8, 0xc4, 0xb9);
+    w.hovered.bg_fill = rgb(0xc8, 0xc4, 0xb9);
+    w.hovered.bg_stroke = Stroke::new(1.0, rgb(0x55, 0x54, 0x4f));
+    w.hovered.fg_stroke = Stroke::new(1.5, Color32::BLACK);
+    w.active.weak_bg_fill = rgb(0xb5, 0xb0, 0xa4);
+    w.active.bg_fill = rgb(0xb5, 0xb0, 0xa4);
+    w.open.weak_bg_fill = rgb(0xcf, 0xcb, 0xc1);
+    w.open.bg_fill = rgb(0xcf, 0xcb, 0xc1);
+    w.open.bg_stroke = Stroke::new(1.0, rgb(0x7a, 0x77, 0x6f));
+    v
+}
+
 fn term_colors(dark: bool) -> (Color32, Color32) {
     if dark {
         (TERM_BG, TERM_FG)
     } else {
-        (Color32::from_rgb(0xfb, 0xfa, 0xf5), Color32::from_rgb(0x1d, 0x1d, 0x1b))
+        (Color32::from_rgb(0xff, 0xfe, 0xfa), Color32::from_rgb(0x10, 0x10, 0x0e))
     }
 }
 
