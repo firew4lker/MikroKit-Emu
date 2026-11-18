@@ -50,7 +50,8 @@ microkit-emu [--rom PATH] [--terminal | --keypad] [--debug] [program.hex|.asm|.b
 - **I/O ports** (🔌 I/O ports): the 8155's ports A, B and C on connector X2
   shown as LEDs (outputs) or clickable switches (inputs), following the
   8155's command register, plus the X3 inputs on port 0FH and the timer.
-  Try `examples/ports.asm`.
+  Try `examples/ports.asm` (switches → LEDs) and `examples/outputs.asm`
+  (all three ports as outputs).
 - **Debug panel**: registers, disassembly, breakpoints, memory view, the
   monitor's saved user registers, 8155 state. Pause and step the CPU.
 - **File → Save memory range** writes RAM out as `.hex` or `.bin`.

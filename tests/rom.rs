@@ -235,3 +235,31 @@ fn emulation_speed() {
     let mhz = 300.0 / t.elapsed().as_secs_f64();
     println!("emulated {mhz:.0} MHz ({:.0}x real time)", mhz / 3.072);
 }
+
+#[test]
+fn examples_assemble() {
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples");
+    for e in std::fs::read_dir(dir).unwrap() {
+        let p = e.unwrap().path();
+        if p.extension().is_some_and(|x| x == "asm") {
+            let src = std::fs::read_to_string(&p).unwrap();
+            asm::assemble(&src).unwrap_or_else(|e| panic!("{}: {e}", p.display()));
+        }
+    }
+}
+
+#[test]
+fn outputs_example_drives_all_ports() {
+    let mut m = boot(false);
+    let src = std::fs::read_to_string(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/outputs.asm")).unwrap();
+    for (&a, &b) in &asm::assemble(&src).unwrap().image.bytes {
+        m.board.poke(a, b);
+    }
+    let mut ks = vec![Key::Go];
+    ks.extend(hex("2000"));
+    ks.push(Key::Ex);
+    keys(&mut m, &ks);
+    assert_eq!(m.board.pio.csr, 0x0F);
+    assert_eq!(m.board.pio.out, [0x55, 0xF0, 0x2A]);
+    assert_eq!(display_text(&m.display()), "- 80|85", "returned with RST 1");
+}
