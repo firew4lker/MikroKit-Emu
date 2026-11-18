@@ -1,0 +1,9 @@
+[package]
+name = "microkit-emu"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe = { version = "0.37", features = ["persistence"] }
+rfd = "0.18"
+serde = { version = "1.0.229", features = ["derive"] }
