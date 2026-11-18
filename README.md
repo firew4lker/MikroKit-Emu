@@ -58,6 +58,10 @@ microkit-emu [--rom PATH] [--terminal | --keypad] [--debug] [program.hex|.asm|.b
   ^C to the kit. Ctrl+V pastes (typed in at a person's pace).
 - **Theme**: *View → Follow the system / Dark / Light*. In the light theme
   the terminal shows dark text on a light background.
+  On Linux the desktop's choice is read from the freedesktop portal
+  (`org.freedesktop.appearance color-scheme`), because the windowing
+  library doesn't report it there; switching the desktop theme while the
+  emulator runs is picked up too.
 - **Debug panel**: registers, disassembly, breakpoints, memory view, the
   monitor's saved user registers, 8155 state. Pause and step the CPU.
 - **File → Save memory range** writes RAM out as `.hex` or `.bin`.

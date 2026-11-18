@@ -8,3 +8,7 @@ arboard = { version = "3.7", default-features = false }
 eframe = { version = "0.37", features = ["persistence"] }
 rfd = "0.18"
 serde = { version = "1.0.229", features = ["derive"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# winit doesn't report the desktop theme on Linux; ask the XDG portal.
+zbus = { version = "5", default-features = false, features = ["blocking-api", "async-io"] }

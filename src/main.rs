@@ -1,6 +1,7 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod app;
+mod system_theme;
 
 const USAGE: &str = "\
 Microkit 8085 trainer emulator

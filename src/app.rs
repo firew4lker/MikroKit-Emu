@@ -134,6 +134,8 @@ pub struct App {
     /// The terminal text the user last selected (egui reports it when the
     /// selection settles); used by the right-click "Copy".
     selected_text: std::sync::Arc<std::sync::Mutex<Selection>>,
+    /// Desktop light/dark preference (winit doesn't report it on Linux).
+    system_theme: crate::system_theme::SystemTheme,
     breakpoints: Vec<u16>,
     bp_text: String,
     mem_addr: String,
@@ -177,6 +179,7 @@ impl App {
             show_help: false,
             confirm: None,
             selected_text: Default::default(),
+            system_theme: crate::system_theme::SystemTheme::watch(cc.egui_ctx.clone()),
             breakpoints: Vec::new(),
             bp_text: String::new(),
             mem_addr: "2000".into(),
@@ -1391,6 +1394,12 @@ impl App {
 
 impl eframe::App for App {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // "Follow the system": egui uses the fallback theme when the backend
+        // can't tell, so feed it what the desktop told us (light if unsure).
+        let want = ctx.input(|i| i.raw.system_theme).or(self.system_theme.get()).unwrap_or(egui::Theme::Light);
+        if ctx.options(|o| o.fallback_theme) != want {
+            ctx.options_mut(|o| o.fallback_theme = want);
+        }
         self.tick();
         if self.running {
             ctx.request_repaint();
