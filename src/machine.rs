@@ -52,7 +52,7 @@ impl Key {
     }
 }
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 pub struct Jumpers {
     /// J16 ON: terminal (CRT) monitor; OFF: keypad monitor.

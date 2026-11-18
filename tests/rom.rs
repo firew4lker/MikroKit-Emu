@@ -225,3 +225,13 @@ fn crt_load_over_db9_1() {
     assert!(out.contains("END OF TRANSMISSION"), "got {out:?}");
     assert_eq!(&m.board.ram[0x400..0x440], &data[..]);
 }
+
+#[test]
+#[ignore = "speed measurement; run with --release -- --ignored --nocapture"]
+fn emulation_speed() {
+    let mut m = boot(false);
+    let t = std::time::Instant::now();
+    m.run_for(300_000_000, &[]);
+    let mhz = 300.0 / t.elapsed().as_secs_f64();
+    println!("emulated {mhz:.0} MHz ({:.0}x real time)", mhz / 3.072);
+}
