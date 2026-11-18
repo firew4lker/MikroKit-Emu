@@ -52,6 +52,12 @@ microkit-emu [--rom PATH] [--terminal | --keypad] [--debug] [program.hex|.asm|.b
   8155's command register, plus the X3 inputs on port 0FH and the timer.
   Try `examples/ports.asm` (switches → LEDs) and `examples/outputs.asm`
   (all three ports as outputs).
+- **Copy and paste**: drag over terminal text to select it. Right-click
+  the terminal for *Copy*, *Copy all text*, *Paste*, *Send Ctrl+C* and
+  *Clear terminal*. With text selected, Ctrl+C copies; otherwise it sends
+  ^C to the kit. Ctrl+V pastes (typed in at a person's pace).
+- **Theme**: *View → Follow the system / Dark / Light*. In the light theme
+  the terminal shows dark text on a light background.
 - **Debug panel**: registers, disassembly, breakpoints, memory view, the
   monitor's saved user registers, 8155 state. Pause and step the CPU.
 - **File → Save memory range** writes RAM out as `.hex` or `.bin`.

@@ -44,6 +44,34 @@ struct Settings {
     show_debug: bool,
     show_tape: bool,
     show_ports: bool,
+    theme: Theme,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+enum Theme {
+    #[default]
+    System,
+    Dark,
+    Light,
+}
+
+impl Theme {
+    fn preference(self) -> egui::ThemePreference {
+        match self {
+            Theme::System => egui::ThemePreference::System,
+            Theme::Dark => egui::ThemePreference::Dark,
+            Theme::Light => egui::ThemePreference::Light,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+enum TermAction {
+    Copy,
+    CopyAll,
+    Paste,
+    CtrlC,
+    Clear,
 }
 
 impl Default for Settings {
@@ -59,6 +87,7 @@ impl Default for Settings {
             show_debug: false,
             show_tape: false,
             show_ports: false,
+            theme: Theme::System,
         }
     }
 }
@@ -102,6 +131,9 @@ pub struct App {
     save_dialog: Option<SaveDialog>,
     show_help: bool,
     confirm: Option<Confirm>,
+    /// The terminal text the user last selected (egui reports it when the
+    /// selection settles); used by the right-click "Copy".
+    selected_text: std::sync::Arc<std::sync::Mutex<Selection>>,
     breakpoints: Vec<u16>,
     bp_text: String,
     mem_addr: String,
@@ -144,11 +176,14 @@ impl App {
             save_dialog: None,
             show_help: false,
             confirm: None,
+            selected_text: Default::default(),
             breakpoints: Vec::new(),
             bp_text: String::new(),
             mem_addr: "2000".into(),
             last_loaded: None,
         };
+        cc.egui_ctx.set_theme(app.settings.theme.preference());
+        cc.egui_ctx.add_plugin(SelectionWatcher(app.selected_text.clone()));
         app.m.board.jumpers = app.settings.jumpers.clone();
         app.m.apply_jumpers();
         let rom = opts.rom.clone().or_else(|| app.settings.rom_path.clone().filter(|p| p.exists())).or_else(find_default_rom);
@@ -442,7 +477,13 @@ impl App {
                     let t = t.replace("\r\n", "\r").replace('\n', "\r");
                     self.send_terminal(t.as_bytes());
                 }
-                (Target::Terminal, Event::Copy) => self.send_terminal(&[0x03]),
+                (Target::Terminal, Event::Copy) => {
+                    // with text selected, Ctrl+C copies it (egui does that);
+                    // otherwise it is ^C for the kit
+                    if !has_text_selection(ctx) {
+                        self.send_terminal(&[0x03]);
+                    }
+                }
                 (Target::Terminal, Event::Key { key, pressed: true, modifiers, .. }) => {
                     let b = match key {
                         EKey::Enter => Some(0x0D),
@@ -563,6 +604,20 @@ impl App {
                 ui.checkbox(&mut self.settings.show_ports, "Show I/O ports");
                 ui.checkbox(&mut self.settings.show_debug, "Show debug panel");
                 ui.checkbox(&mut self.settings.set_pc_after_load, "Set GO address after loading a program");
+            });
+            ui.menu_button("View", |ui| {
+                ui.label(RichText::new("Theme").weak());
+                let before = self.settings.theme;
+                ui.radio_value(&mut self.settings.theme, Theme::System, "Follow the system");
+                ui.radio_value(&mut self.settings.theme, Theme::Dark, "Dark (light text on dark)");
+                ui.radio_value(&mut self.settings.theme, Theme::Light, "Light (dark text on light)");
+                if self.settings.theme != before {
+                    ui.ctx().set_theme(self.settings.theme.preference());
+                }
+                ui.separator();
+                ui.checkbox(&mut self.settings.show_tape, "Tape recorder");
+                ui.checkbox(&mut self.settings.show_ports, "I/O ports");
+                ui.checkbox(&mut self.settings.show_debug, "Debug panel");
             });
             ui.menu_button("Help", |ui| {
                 if ui.button("Keys and usage").clicked() {
@@ -729,23 +784,31 @@ impl App {
                 });
             });
         });
+        let (bg, fg) = term_colors(ui.visuals().dark_mode);
         let frame = egui::Frame::new()
-            .fill(TERM_BG)
+            .fill(bg)
             .corner_radius(8)
             .inner_margin(egui::Margin::same(10))
-            .stroke(if focused { Stroke::new(2.0, TERM_FG) } else { Stroke::new(1.0, Color32::from_gray(60)) });
+            .stroke(if focused { Stroke::new(2.0, fg) } else { Stroke::new(1.0, Color32::from_gray(120)) });
         let avail = ui.available_height() - 22.0;
+        let selecting = has_text_selection(ui.ctx());
+        let mut action: Option<TermAction> = None;
+        let mut menu_open = false;
         let resp = frame
             .show(ui, |ui| {
                 ui.set_min_height(avail.max(120.0));
                 ui.set_width(ui.available_width());
+                // background: right-click on empty space opens the menu too
+                let back = ui.interact(ui.max_rect(), ui.scope_id().with("term_back"), Sense::click());
+                back.context_menu(|ui| term_menu(ui, selecting, &mut action));
+                menu_open |= back.context_menu_opened();
                 egui::ScrollArea::vertical()
                     .stick_to_bottom(true)
                     .auto_shrink([false, false])
                     .show(ui, |ui| {
                         let mut text = self.term.text();
                         let blink = (ui.input(|i| i.time) * 2.0) as i64 % 2 == 0;
-                        if focused && blink {
+                        if focused && blink && !selecting {
                             // block cursor at the current column of the last line
                             let last_len = self.term.lines.last().map(|l| l.len()).unwrap_or(0);
                             if self.term.col >= last_len {
@@ -753,12 +816,49 @@ impl App {
                                 text.push('█');
                             }
                         }
-                        ui.label(RichText::new(text).monospace().size(13.0).color(TERM_FG));
+                        let label = egui::Label::new(RichText::new(text).monospace().size(13.0).color(fg))
+                            .selectable(true);
+                        let lr = ui.add(label).on_hover_cursor(egui::CursorIcon::Text);
+                        lr.context_menu(|ui| term_menu(ui, selecting, &mut action));
+                        menu_open |= lr.context_menu_opened();
                     });
             })
             .response;
         if clicked_inside(ui, resp.rect) {
             self.target = Target::Terminal;
+        }
+        if menu_open {
+            // egui re-reports the selection while the menu is up; keep ours
+            if let Ok(mut s) = self.selected_text.lock() {
+                s.ignore = true;
+            }
+        }
+        match action {
+            Some(TermAction::Copy) => {
+                let t = self.selected_text.lock().map(|s| s.text.clone()).unwrap_or_default();
+                ui.ctx().copy_text(t);
+                self.status = "Selection copied".into();
+            }
+            Some(TermAction::CopyAll) => {
+                ui.ctx().copy_text(self.term.text());
+                self.status = "Terminal text copied".into();
+            }
+            Some(TermAction::Paste) => self.paste_into_terminal(),
+            Some(TermAction::CtrlC) => self.send_terminal(&[0x03]),
+            Some(TermAction::Clear) => self.term.clear(),
+            None => {}
+        }
+    }
+
+    fn paste_into_terminal(&mut self) {
+        match arboard::Clipboard::new().and_then(|mut c| c.get_text()) {
+            Ok(t) => {
+                let t = if self.settings.force_upper { t.to_ascii_uppercase() } else { t };
+                let t = t.replace("\r\n", "\r").replace('\n', "\r");
+                self.send_terminal(t.as_bytes());
+                self.target = Target::Terminal;
+            }
+            Err(e) => self.status = format!("Nothing to paste ({e})"),
         }
     }
 
@@ -1298,6 +1398,12 @@ impl eframe::App for App {
         for p in dropped {
             self.load_program(&p);
         }
+        // a right-click on the terminal makes egui report a new selection;
+        // don't let that replace what the user dragged over
+        let right = ctx.input(|i| i.pointer.button_pressed(egui::PointerButton::Secondary) || i.pointer.button_released(egui::PointerButton::Secondary));
+        if let Ok(mut s) = self.selected_text.lock() {
+            s.ignore = right;
+        }
         self.handle_keyboard(&ctx);
 
         egui::Panel::top("menu").show(ui, |ui| {
@@ -1323,6 +1429,7 @@ impl eframe::App for App {
         egui::CentralPanel::default_margins().show(ui, |ui| self.terminal(ui));
         self.dialogs(&ctx);
         self.tool_windows(&ctx);
+
         if !self.running {
             // keep the cursor blinking and the display live
             ctx.request_repaint_after(std::time::Duration::from_millis(250));
@@ -1355,6 +1462,11 @@ Built-in ROM programs (GO address EX):
 Terminal (set J16 on, then RS): click the terminal and type.
   Commands must be capitals; 'Type in capitals' does that for you.
   Enter = CR, Esc = ESC, Ctrl+C = ^C, Ctrl+S/Q = XOFF/XON.
+  Drag over text to select it; then Ctrl+C copies it instead of
+  sending ^C. Right-click: Copy, Copy all text, Paste (Ctrl+V),
+  Send Ctrl+C, Clear terminal.
+
+Theme: View → Follow the system / Dark / Light.
 
 Tiny BASIC (needs the ROM roms/monitor-basic.bin, J16 on):
   File → Load monitor ROM, press RS, type B in the terminal.
@@ -1371,6 +1483,73 @@ Loading programs:
 
   Or use the kit's own download: GO 1600 EX (keypad) or L (terminal),
   then Serial → Send HEX file to DB9-2 (or DB9-1 after P → 1).";
+
+/// Remembers the last settled text selection (egui sends it to the
+/// backend at the end of each pass, after our UI code has run).
+#[derive(Default)]
+struct Selection {
+    text: String,
+    /// Set for frames with a right-click (see `App::ui`).
+    ignore: bool,
+}
+
+struct SelectionWatcher(std::sync::Arc<std::sync::Mutex<Selection>>);
+
+impl egui::Plugin for SelectionWatcher {
+    fn debug_name(&self) -> &'static str {
+        "SelectionWatcher"
+    }
+    fn output_hook(&mut self, _ctx: &egui::Context, output: &mut egui::FullOutput) {
+        for c in &output.platform_output.commands {
+            if let egui::OutputCommand::TextSelectionSettled(t) = c {
+                if std::env::var_os("MICROKIT_DEBUG").is_some() {
+                    eprintln!("selection settled: {t:?} ignore={}", self.0.lock().map(|s| s.ignore).unwrap_or(false));
+                }
+                if let Ok(mut s) = self.0.lock() {
+                    if !s.ignore {
+                        s.text = t.clone();
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn term_colors(dark: bool) -> (Color32, Color32) {
+    if dark {
+        (TERM_BG, TERM_FG)
+    } else {
+        (Color32::from_rgb(0xfb, 0xfa, 0xf5), Color32::from_rgb(0x1d, 0x1d, 0x1b))
+    }
+}
+
+fn has_text_selection(ctx: &egui::Context) -> bool {
+    ctx.with_plugin(|s: &mut egui::text_selection::LabelSelectionState| s.has_selection()).unwrap_or(false)
+}
+
+fn term_menu(ui: &mut egui::Ui, selecting: bool, action: &mut Option<TermAction>) {
+    if ui.add_enabled(selecting, egui::Button::new("Copy").shortcut_text("Ctrl+C")).clicked() {
+        *action = Some(TermAction::Copy);
+        ui.close();
+    }
+    if ui.button("Copy all text").clicked() {
+        *action = Some(TermAction::CopyAll);
+        ui.close();
+    }
+    if ui.add(egui::Button::new("Paste").shortcut_text("Ctrl+V")).clicked() {
+        *action = Some(TermAction::Paste);
+        ui.close();
+    }
+    ui.separator();
+    if ui.button("Send Ctrl+C").clicked() {
+        *action = Some(TermAction::CtrlC);
+        ui.close();
+    }
+    if ui.button("Clear terminal").clicked() {
+        *action = Some(TermAction::Clear);
+        ui.close();
+    }
+}
 
 /// True if the primary button was clicked inside `rect` this frame (without
 /// registering a widget that would steal clicks from the children).
