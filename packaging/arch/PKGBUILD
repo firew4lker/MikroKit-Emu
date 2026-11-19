@@ -1,0 +1,57 @@
+# Maintainer: firew4lker
+pkgname=microkit-emu
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Emulator of the Micro Design Microkit 8085 trainer (keypad, 7-segment display, terminal, tape, LCD)"
+arch=('x86_64')
+license=('unknown')
+depends=(
+  'gcc-libs' 'glibc'
+  'libxkbcommon' 'wayland'                                       # Wayland
+  'libx11' 'libxcursor' 'libxrandr' 'libxi' 'libxkbcommon-x11'   # X11
+  'vulkan-icd-loader' 'libglvnd'                                 # Vulkan, or OpenGL
+  'dbus' 'xdg-desktop-portal'                                    # file dialogs
+  'hicolor-icon-theme'
+)
+makedepends=('cargo')
+optdepends=(
+  'xdg-desktop-portal-gtk: file dialogs on desktops without their own portal'
+)
+options=('!lto')
+# made by make-source.sh (git archive of the emulator repository)
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  cargo build --frozen --release
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  # tests/rom.rs needs the kit's original files, which aren't in the tarball
+  cargo test --frozen --release --lib --test basic --test lcd --test tape
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm755 target/release/microkit-emu "$pkgdir/usr/bin/microkit-emu"
+  install -Dm644 assets/microkit-emu.desktop "$pkgdir/usr/share/applications/microkit-emu.desktop"
+  for s in 32 48 64 128 256; do
+    install -Dm644 "assets/icon-$s.png" "$pkgdir/usr/share/icons/hicolor/${s}x${s}/apps/microkit-emu.png"
+  done
+  install -Dm644 README.md -t "$pkgdir/usr/share/doc/$pkgname"
+  install -Dm644 docs/manual-en.pdf docs/manual-el.pdf docs/manual-en.html docs/manual-el.html \
+    -t "$pkgdir/usr/share/doc/$pkgname"
+  install -Dm644 examples/* -t "$pkgdir/usr/share/$pkgname/examples"
+}

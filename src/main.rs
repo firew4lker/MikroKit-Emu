@@ -153,6 +153,9 @@ fn run_gui(all: Vec<std::ffi::OsString>) -> eframe::Result {
     let options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
             .with_title(APP_NAME)
+            .with_icon(
+                eframe::icon_data::from_png_bytes(include_bytes!("../assets/icon-256.png")).expect("icon is a valid PNG"),
+            )
             .with_app_id(APP_NAME)
             .with_inner_size([1180.0, 760.0])
             .with_min_inner_size([820.0, 560.0]),

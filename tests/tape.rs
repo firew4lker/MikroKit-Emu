@@ -3,14 +3,12 @@
 use microkit_emu::machine::{Key, Machine};
 use microkit_emu::segments::display_text;
 use microkit_emu::tape::Tape;
-use std::path::PathBuf;
 
 const MS: u64 = 3072;
 
 fn boot(terminal: bool) -> Machine {
-    let rom = std::fs::read(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../Monitor Program.BIN")).unwrap();
     let mut m = Machine::new();
-    m.load_rom(&rom);
+    m.load_rom(microkit_emu::roms::ORIGINAL);
     m.board.jumpers.j16_terminal = terminal;
     m.board.jumpers.j18_db9_2 = false; // J18 1-2: tape
     m.apply_jumpers();
