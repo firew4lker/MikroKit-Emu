@@ -1,4 +1,4 @@
-//! The Microkit board: memory map, I/O decoding, jumpers and the glue that
+//! The Mikrokit board: memory map, I/O decoding, jumpers and the glue that
 //! connects the peripherals to the CPU's interrupt pins.
 
 use crate::cpu::{Bus, Cpu, IntLines};

@@ -1,6 +1,6 @@
-# MicroKit-Emu User Manual
+# MikroKit-Emu User Manual
 
-*An emulator of the Micro Design Microkit V2.0 8085 trainer (Athens, 1985)*
+*An emulator of the Micro Design Mikrokit V2.0 8085 trainer (Athens, 1985)*
 
 ---
 
@@ -27,7 +27,7 @@
 
 ## 1. Introduction
 
-The **Microkit** is an educational computer built around the Intel 8085
+The **Mikrokit** is an educational computer built around the Intel 8085
 microprocessor, made by Micro Design Ltd in Athens in the 1980s. It has a
 six-digit LED display, a 24-key keypad, two serial ports, a cassette
 interface and a parallel I/O connector. Its built-in program, the
@@ -35,7 +35,7 @@ interface and a parallel I/O connector. Its built-in program, the
 registers, run programs one instruction at a time, load programs over a
 serial line and save them on tape.
 
-**MicroKit-Emu** reproduces the board on your computer. It runs the
+**MikroKit-Emu** reproduces the board on your computer. It runs the
 original monitor program from the kit's EPROM unchanged, with the CPU
 running at the board's real speed (3.072 MHz, counted clock cycle by clock
 cycle), so programs behave as they do on the real kit, including their
@@ -65,8 +65,8 @@ an **HD44780 character LCD**.
 Unpack the archive and run the program:
 
 ```bash
-tar xzf microkit-emu-linux-x86_64.tar.gz
-./microkit-emu/microkit-emu
+tar xzf mikrokit-emu-linux-x86_64.tar.gz
+./mikrokit-emu/mikrokit-emu
 ```
 
 The folder also contains this manual's README and the `examples` folder
@@ -75,8 +75,8 @@ with the sample programs. The ready-made program needs a recent Linux
 
 ### Windows (ready-made program)
 
-Unzip `microkit-emu-windows-x86_64.zip` and double-click
-`microkit-emu.exe` in the `microkit-emu` folder. It needs Windows 10 or
+Unzip `mikrokit-emu-windows-x86_64.zip` and double-click
+`mikrokit-emu.exe` in the `mikrokit-emu` folder. It needs Windows 10 or
 newer and nothing else. The folder also has the README, the manuals and the
 `examples` folder.
 
@@ -84,9 +84,9 @@ If the graphics driver can't run the program's normal drawing method
 (Vulkan or Direct3D 12), even if it crashes, the program starts again with
 OpenGL and remembers that OpenGL works on that PC. If that fails too, a
 message explains why and the report is saved in
-`%APPDATA%\MicroKit-Emu\data\error.log`. Updating the graphics driver
+`%APPDATA%\MikroKit-Emu\data\error.log`. Updating the graphics driver
 usually helps; in a virtual machine, turn on 3D acceleration. After a
-driver update, start it once with `microkit-emu.exe --renderer wgpu` to use
+driver update, start it once with `mikrokit-emu.exe --renderer wgpu` to use
 the normal method again.
 
 ### Building from the source code (Linux, Windows, macOS)
@@ -100,7 +100,7 @@ cargo run --release
 ### Command line
 
 ```
-microkit-emu [options] [program.hex | program.asm | program.bin]
+mikrokit-emu [options] [program.hex | program.asm | program.bin]
 ```
 
 | Option | Meaning |
@@ -350,8 +350,8 @@ are reported with their line number.
 To assemble without opening the window:
 
 ```bash
-microkit-emu --assemble program.asm -o program.hex
-microkit-emu --assemble program.asm -o program.bin --symbols
+mikrokit-emu --assemble program.asm -o program.hex
+mikrokit-emu --assemble program.asm -o program.bin --symbols
 ```
 
 A `.bin` output is a full 8 KB ROM image (0000–1FFF), handy for making your
@@ -422,9 +422,9 @@ To load a BASIC program from a text file, use **Send HEX → DB9-1** with a
 
 ## 9. The tape recorder
 
-The Microkit saves programs on an ordinary cassette recorder. The emulator
+The Mikrokit saves programs on an ordinary cassette recorder. The emulator
 has a virtual recorder that saves "tapes" as WAV sound files: you can even
-play them into a real Microkit, or record a real kit's tape and load it.
+play them into a real Mikrokit, or record a real kit's tape and load it.
 
 ![Recording a tape](images/tape-recorded-en.png)
 
@@ -646,5 +646,5 @@ EPROM and 6264 RAM.
 
 ---
 
-*MicroKit-Emu. The Microkit was designed by Micro Design Ltd. Tiny BASIC
+*MikroKit-Emu. The Mikrokit was designed by Micro Design Ltd. Tiny BASIC
 is Palo Alto Tiny BASIC by Li-Chen Wang and Roger Rauskolb (1976).*

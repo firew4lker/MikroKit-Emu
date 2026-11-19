@@ -1,16 +1,16 @@
-# Microkit V2.0 schematic in KiCad
+# Mikrokit V2.0 schematic in KiCad
 
-A KiCad 10 redraw of the Micro Design **Microkit V2.0** 8085 trainer
+A KiCad 10 redraw of the Micro Design **Mikrokit V2.0** 8085 trainer
 schematic (three sheets, 7-3-1985).
 
-- `microkit.kicad_pro`: open this in KiCad.
-- `microkit.kicad_sch`: index page; `cpu_memory.kicad_sch`,
+- `mikrokit.kicad_pro`: open this in KiCad.
+- `mikrokit.kicad_sch`: index page; `cpu_memory.kicad_sch`,
   `serial_io_tape.kicad_sch` and `keyboard_display.kicad_sch` follow the
   original sheets 1–3.
-- `microkit.kicad_sym`: symbols for the parts the KiCad libraries lack
+- `mikrokit.kicad_sym`: symbols for the parts the KiCad libraries lack
   (8085A, 8155, 8279, 8251A, 2764, 6264, 2732, MC1488, MC1489, the
   7-segment display). The project's `sym-lib-table` points to it.
-- `microkit.pdf`: all sheets as a PDF.
+- `mikrokit.pdf`: all sheets as a PDF.
 - `NOTES.md`: how it was checked, what could not be read with certainty,
   and two differences from the emulator.
 

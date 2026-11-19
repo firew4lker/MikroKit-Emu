@@ -6,9 +6,9 @@ mod i18n;
 mod system_theme;
 
 const USAGE: &str = "\
-MicroKit-Emu — Micro Design Microkit 8085 trainer emulator
+MikroKit-Emu — Micro Design Mikrokit 8085 trainer emulator
 
-usage: microkit-emu [options] [program.hex|.asm|.bin]
+usage: mikrokit-emu [options] [program.hex|.asm|.bin]
 
 options:
   --rom ROM      monitor ROM: original (the default), basic
@@ -22,12 +22,12 @@ options:
   -h, --help     show this help
 
 assembler (no window):
-  microkit-emu --assemble SOURCE.asm [-o OUT.bin|OUT.hex] [--symbols]
+  mikrokit-emu --assemble SOURCE.asm [-o OUT.bin|OUT.hex] [--symbols]
     .bin output is the 8 KB ROM image 0000-1FFF (gaps filled with 00);
     .hex output contains every assembled byte.";
 
 fn assemble_cli(args: &[std::ffi::OsString]) -> std::process::ExitCode {
-    use microkit_emu::{asm, loader};
+    use mikrokit_emu::{asm, loader};
     let mut src = None;
     let mut out: Option<std::path::PathBuf> = None;
     let mut symbols = false;
@@ -117,7 +117,7 @@ fn main() -> std::process::ExitCode {
             }
             args.drain(i..(i + 2).min(args.len()));
         }
-        if std::env::var_os("MICROKIT_SIMULATE_CRASH").is_some_and(|v| v == renderer.as_str()) {
+        if std::env::var_os("MIKROKIT_SIMULATE_CRASH").is_some_and(|v| v == renderer.as_str()) {
             // test hook: crash like a broken graphics driver does
             unsafe { std::ptr::null_mut::<u8>().write_volatile(0) };
         }
@@ -130,18 +130,19 @@ fn main() -> std::process::ExitCode {
     supervise(all)
 }
 
-const APP_NAME: &str = "MicroKit-Emu";
-/// What the app was called before it was named; its settings folder.
-const OLD_APP_NAME: &str = "Microkit 8085 emulator";
+const APP_NAME: &str = "MikroKit-Emu";
+/// Earlier names of the app (newest first): their settings folders.
+const OLD_APP_NAMES: &[&str] = &["MicroKit-Emu", "Microkit 8085 emulator"];
 
-/// Carry the settings over from the folder used before the rename.
+/// Carry the settings over from the folder used before a rename.
 fn migrate_settings() {
-    let (Some(new), Some(old)) = (eframe::storage_dir(APP_NAME), eframe::storage_dir(OLD_APP_NAME)) else {
-        return;
-    };
-    if new.exists() || !old.exists() {
+    let Some(new) = eframe::storage_dir(APP_NAME) else { return };
+    if new.exists() {
         return;
     }
+    let Some(old) = OLD_APP_NAMES.iter().filter_map(|n| eframe::storage_dir(n)).find(|d| d.exists()) else {
+        return;
+    };
     if std::fs::create_dir_all(&new).is_ok() {
         if let Ok(dir) = std::fs::read_dir(&old) {
             for f in dir.flatten() {
@@ -159,7 +160,7 @@ fn run_gui(all: Vec<std::ffi::OsString>) -> eframe::Result {
         match a.to_str() {
             Some("--rom") => {
                 opts.rom = args.next().map(|r| match r.to_str() {
-                    Some(n) if microkit_emu::roms::BUILTIN.iter().any(|(b, _, _)| *b == n) => {
+                    Some(n) if mikrokit_emu::roms::BUILTIN.iter().any(|(b, _, _)| *b == n) => {
                         app::RomChoice::Builtin(n.into())
                     }
                     _ => app::RomChoice::File(r.into()),
@@ -196,7 +197,7 @@ fn run_gui(all: Vec<std::ffi::OsString>) -> eframe::Result {
 pub static FIRST_FRAME: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 /// What a child process prints on stdout once its first frame is drawn.
-pub const READY_LINE: &str = "MICROKIT-EMU-READY";
+pub const READY_LINE: &str = "MIKROKIT-EMU-READY";
 
 /// Called from the first frame: tell the supervisor the window works.
 pub fn signal_ready() {
@@ -217,6 +218,8 @@ pub fn signal_ready() {
 fn supervise(all: Vec<std::ffi::OsString>) -> std::process::ExitCode {
     use std::io::{BufRead, BufReader};
     use std::process::{Command, Stdio};
+    // before the remembered renderer is read from the settings folder
+    migrate_settings();
 
     // a --renderer chosen by the user: use only that one
     let mut user_args = Vec::new();
@@ -295,7 +298,7 @@ fn supervise(all: Vec<std::ffi::OsString>) -> std::process::ExitCode {
             Ok(st) if st.success() => return std::process::ExitCode::SUCCESS,
             Ok(st) if ready => {
                 report_error(
-                    "MicroKit-Emu stopped unexpectedly.",
+                    "MikroKit-Emu stopped unexpectedly.",
                     &format!("{}\n\n{detail}", explain_status(&st)),
                     false,
                 );
@@ -307,7 +310,7 @@ fn supervise(all: Vec<std::ffi::OsString>) -> std::process::ExitCode {
             Err(e) => attempts.push(format!("{}: {e}", renderer_name(renderer))),
         }
     }
-    report_error("MicroKit-Emu could not open its window.", &attempts.join("\n\n"), true);
+    report_error("MikroKit-Emu could not open its window.", &attempts.join("\n\n"), true);
     std::process::ExitCode::FAILURE
 }
 

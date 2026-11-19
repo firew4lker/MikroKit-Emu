@@ -1,4 +1,4 @@
-"""Custom symbols for the Microkit parts that KiCad's libraries lack.
+"""Custom symbols for the Mikrokit parts that KiCad's libraries lack.
 
 Each IC is a box: pins listed top to bottom on the left and right, power
 pins on the top and bottom. `None` leaves a gap.
@@ -140,5 +140,5 @@ SYMBOLS = [
     box('7SEG_CC',
         [(14, 'A', PAS), (13, 'B', PAS), (8, 'C', PAS), (7, 'D', PAS), (6, 'E', PAS), (1, 'F', PAS), (2, 'G', PAS), (9, 'DP', PAS)],
         [None, None, None, (4, 'K1', PAS), (12, 'K2', PAS)],
-        width=10.16, ref='DS', description='7-segment LED display, common cathode (pinout as drawn on the Microkit schematic)'),
+        width=10.16, ref='DS', description='7-segment LED display, common cathode (pinout as drawn on the Mikrokit schematic)'),
 ]

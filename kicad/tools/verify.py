@@ -26,9 +26,9 @@ def check(ok, msg):
 # ----------------------------------------------------------------------------
 # 1. netlist
 # ----------------------------------------------------------------------------
-xml = os.path.join(HERE, 'microkit-netlist.xml')
+xml = os.path.join(HERE, 'mikrokit-netlist.xml')
 subprocess.run(['kicad-cli', 'sch', 'export', 'netlist', '--format', 'kicadxml', '-o', xml,
-                os.path.join(HERE, 'microkit.kicad_sch')], check=True, capture_output=True)
+                os.path.join(HERE, 'mikrokit.kicad_sch')], check=True, capture_output=True)
 root = ET.parse(xml).getroot()
 os.remove(xml)
 kicad = {}

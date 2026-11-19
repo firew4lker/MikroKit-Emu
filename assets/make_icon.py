@@ -1,4 +1,4 @@
-"""Draw the MicroKit-Emu icon: an 8085 in a DIP package, in 3D.
+"""Draw the MikroKit-Emu icon: an 8085 in a DIP package, in 3D.
 
 A small orthographic renderer: every surface is a 3D polygon, shaded with
 a gradient, culled when it faces away, and painted from back to front.

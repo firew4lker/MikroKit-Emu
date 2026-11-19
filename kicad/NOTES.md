@@ -1,7 +1,7 @@
 # Notes on the KiCad redraw
 
 The project was redrawn from the three scanned sheets of the original
-schematic ("MICROKIT V2.0", Micro Design Ltd, 7-3-1985). Reference
+schematic ("MIKROKIT V2.0", Micro Design Ltd, 7-3-1985). Reference
 designators, jumper numbers and connector pin numbers follow the original.
 
 The drawing is a **labelled-net** schematic: every pin has a short wire and
@@ -76,7 +76,7 @@ first things to check on a real board with a continuity tester.
 
 ## Differences from the emulator (fixed)
 
-The redraw showed two details that MicroKit-Emu did differently; both are
+The redraw showed two details that MikroKit-Emu did differently; both are
 fixed in the emulator now:
 
 - The X3 inputs are read through IC21 at **ports 3EH/3FH**, bits D0–D2

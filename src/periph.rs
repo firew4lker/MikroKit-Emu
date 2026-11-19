@@ -1,4 +1,4 @@
-//! Peripheral chips of the Microkit: 8279 keyboard/display controller,
+//! Peripheral chips of the Mikrokit: 8279 keyboard/display controller,
 //! 8155 RAM/ports/timer, 8251 USART, and the bit-level serial line that
 //! drives the 8085 SID pin (DB9-2).
 
@@ -11,7 +11,7 @@ use std::collections::VecDeque;
 #[derive(Clone, Debug)]
 pub struct I8279 {
     /// Display RAM, raw bytes as written by the CPU (segments are active low
-    /// on the Microkit: a 0 bit lights the segment).
+    /// on the Mikrokit: a 0 bit lights the segment).
     pub display: [u8; 16],
     addr: u8,
     auto_inc: bool,

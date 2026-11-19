@@ -1,4 +1,4 @@
 (sym_lib_table
   (version 7)
-  (lib (name "microkit")(type "KiCad")(uri "${KIPRJMOD}/microkit.kicad_sym")(options "")(descr "Microkit parts missing from the KiCad libraries"))
+  (lib (name "mikrokit")(type "KiCad")(uri "${KIPRJMOD}/mikrokit.kicad_sym")(options "")(descr "Mikrokit parts missing from the KiCad libraries"))
 )

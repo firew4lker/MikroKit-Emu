@@ -1,8 +1,8 @@
 //! The monitor + Tiny BASIC ROM (roms/monitor-basic.asm).
 
-use microkit_emu::asm;
-use microkit_emu::machine::{Key, Machine};
-use microkit_emu::segments::display_text;
+use mikrokit_emu::asm;
+use mikrokit_emu::machine::{Key, Machine};
+use mikrokit_emu::segments::display_text;
 use std::path::PathBuf;
 
 const MS: u64 = 3072;
@@ -185,7 +185,7 @@ fn basic_rnd_and_size() {
 
 #[test]
 fn downloads_and_tape_still_work() {
-    use microkit_emu::loader::write_ihex;
+    use mikrokit_emu::loader::write_ihex;
     // keypad GO 1600 over DB9-2
     let mut m = boot(false);
     for k in [Key::Go, Key::Hex(1), Key::Hex(6), Key::Hex(0), Key::Hex(0), Key::Ex] {

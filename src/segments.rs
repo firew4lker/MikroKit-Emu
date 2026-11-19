@@ -1,6 +1,6 @@
 //! Decoding of 8279 display bytes into 7-segment states.
 //!
-//! On the Microkit the 8279 outputs A3..A0,B3..B0 drive segments
+//! On the Mikrokit the 8279 outputs A3..A0,B3..B0 drive segments
 //! d,c,b,a,DP,g,f,e (manual fig. 2), and a segment lights when its bit is 0.
 
 /// Segment states in the order a, b, c, d, e, f, g, dp.

@@ -1,4 +1,4 @@
-//! MicroKit-Emu, a Microkit 8085 trainer emulator — core library (no GUI).
+//! MikroKit-Emu, a Mikrokit 8085 trainer emulator — core library (no GUI).
 
 pub mod asm;
 pub mod cpu;

@@ -5,15 +5,15 @@ use eframe::egui::{
     self, Align2, Color32, Event, FontId, Key as EKey, Pos2, Rect, RichText, Sense, Shape, Stroke, StrokeKind,
     Vec2, pos2, vec2,
 };
-use microkit_emu::asm;
-use microkit_emu::disasm::disasm;
-use microkit_emu::loader::{self, Image, parse_addr};
-use microkit_emu::machine::{CPU_HZ, J17_CLOCKS, Jumpers, Key, Machine, monitor};
+use mikrokit_emu::asm;
+use mikrokit_emu::disasm::disasm;
+use mikrokit_emu::loader::{self, Image, parse_addr};
+use mikrokit_emu::machine::{CPU_HZ, J17_CLOCKS, Jumpers, Key, Machine, monitor};
 use crate::i18n::{tr, trf, Language};
-use microkit_emu::roms;
-use microkit_emu::segments;
-use microkit_emu::tape::{Tape, TapeState};
-use microkit_emu::terminal::Terminal;
+use mikrokit_emu::roms;
+use mikrokit_emu::segments;
+use mikrokit_emu::tape::{Tape, TapeState};
+use mikrokit_emu::terminal::Terminal;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
@@ -87,11 +87,11 @@ enum LcdChoice {
 }
 
 impl LcdChoice {
-    fn size(self) -> Option<microkit_emu::lcd::LcdSize> {
+    fn size(self) -> Option<mikrokit_emu::lcd::LcdSize> {
         match self {
             LcdChoice::None => None,
-            LcdChoice::L16x2 => Some(microkit_emu::lcd::LCD_16X2),
-            LcdChoice::L20x4 => Some(microkit_emu::lcd::LCD_20X4),
+            LcdChoice::L16x2 => Some(mikrokit_emu::lcd::LCD_16X2),
+            LcdChoice::L20x4 => Some(mikrokit_emu::lcd::LCD_20X4),
         }
     }
 }
@@ -209,7 +209,7 @@ pub struct App {
     system_theme: crate::system_theme::SystemTheme,
     /// CPU state shown in the status bar / debug panel. While running it is
     /// refreshed a few times a second; at 60 Hz it is just a blur.
-    shown_cpu: (microkit_emu::cpu::Cpu, f64),
+    shown_cpu: (mikrokit_emu::cpu::Cpu, f64),
     started: Instant,
     breakpoints: Vec<u16>,
     bp_text: String,
@@ -263,7 +263,7 @@ impl App {
             confirm: None,
             selected_text: Default::default(),
             system_theme: crate::system_theme::SystemTheme::watch(cc.egui_ctx.clone()),
-            shown_cpu: (microkit_emu::cpu::Cpu::new(), f64::NEG_INFINITY),
+            shown_cpu: (mikrokit_emu::cpu::Cpu::new(), f64::NEG_INFINITY),
             started: Instant::now(),
             breakpoints: Vec::new(),
             bp_text: String::new(),
@@ -278,7 +278,7 @@ impl App {
         cc.egui_ctx.add_plugin(SelectionWatcher(app.selected_text.clone()));
         app.m.board.jumpers = app.settings.jumpers.clone();
         app.m.apply_jumpers();
-        app.m.board.lcd = app.settings.lcd.size().map(microkit_emu::lcd::Hd44780::new);
+        app.m.board.lcd = app.settings.lcd.size().map(mikrokit_emu::lcd::Hd44780::new);
         let rom = opts.rom.clone().unwrap_or_else(|| app.settings.rom.clone());
         app.select_rom(rom);
         if !app.rom_loaded {
@@ -832,7 +832,7 @@ impl App {
     }
 
     fn press(&mut self, key: Key, time: f64) {
-        if std::env::var_os("MICROKIT_DEBUG").is_some() {
+        if std::env::var_os("MIKROKIT_DEBUG").is_some() {
             eprintln!("key {:?} at {:.3}", key, time);
         }
         self.m.press(key);
@@ -866,7 +866,7 @@ impl App {
         }
         let (events, time) = ctx.input(|i| (i.events.clone(), i.time));
         for ev in events {
-            if std::env::var_os("MICROKIT_DEBUG").is_some() {
+            if std::env::var_os("MIKROKIT_DEBUG").is_some() {
                 eprintln!("event {ev:?}");
             }
             match (self.target, ev) {
@@ -1049,7 +1049,7 @@ impl App {
                     ui.close();
                 }
                 ui.separator();
-                ui.label(format!("MicroKit-Emu {}", env!("CARGO_PKG_VERSION")));
+                ui.label(format!("MikroKit-Emu {}", env!("CARGO_PKG_VERSION")));
             });
         });
     }
@@ -1165,7 +1165,7 @@ impl App {
                     ui.add_space(kgap);
                 }
                 ui.label(
-                    RichText::new(tr("MICROKIT V2.0 · click here, then type: 0-F, M R G S N . (Enter = EX)"))
+                    RichText::new(tr("MIKROKIT V2.0 · click here, then type: 0-F, M R G S N . (Enter = EX)"))
                         .color(PCB_TEXT)
                         .small(),
                 );
@@ -1349,7 +1349,7 @@ impl App {
 
     /// The CPU state to display: live when paused, sampled every 0.25 s
     /// while running.
-    fn shown_cpu(&mut self) -> &microkit_emu::cpu::Cpu {
+    fn shown_cpu(&mut self) -> &mikrokit_emu::cpu::Cpu {
         let clock = self.clock_secs();
         if !self.running || clock - self.shown_cpu.1 >= 0.25 {
             self.shown_cpu = (self.m.cpu.clone(), clock);
@@ -1727,7 +1727,7 @@ impl App {
         ui.radio_value(&mut self.settings.lcd, LcdChoice::L16x2, "16x2");
         ui.radio_value(&mut self.settings.lcd, LcdChoice::L20x4, "20x4");
         if self.settings.lcd != before {
-            self.m.board.lcd = self.settings.lcd.size().map(microkit_emu::lcd::Hd44780::new);
+            self.m.board.lcd = self.settings.lcd.size().map(mikrokit_emu::lcd::Hd44780::new);
             if self.m.board.lcd.is_some() {
                 self.settings.show_lcd = true;
             }
@@ -1739,7 +1739,7 @@ impl App {
             ui.checkbox(&mut self.settings.show_lcd, tr("Show LCD window"));
             ui.checkbox(&mut self.settings.lcd_blue, tr("Blue backlight"));
             if ui.button(tr("Power cycle the LCD")).clicked() {
-                self.settings.lcd.size().map(|s| self.m.board.lcd = Some(microkit_emu::lcd::Hd44780::new(s)));
+                self.settings.lcd.size().map(|s| self.m.board.lcd = Some(mikrokit_emu::lcd::Hd44780::new(s)));
                 ui.close();
             }
         });
@@ -1968,7 +1968,7 @@ impl App {
             }
         }
         if self.show_help {
-            egui::Window::new(tr("MicroKit-Emu — keys and usage")).open(&mut self.show_help).show(ctx, |ui| {
+            egui::Window::new(tr("MikroKit-Emu — keys and usage")).open(&mut self.show_help).show(ctx, |ui| {
                 ui.label(if self.settings.language == Language::Greek { HELP_TEXT_EL } else { HELP_TEXT });
             });
         }
@@ -2158,7 +2158,7 @@ impl egui::Plugin for SelectionWatcher {
     fn output_hook(&mut self, _ctx: &egui::Context, output: &mut egui::FullOutput) {
         for c in &output.platform_output.commands {
             if let egui::OutputCommand::TextSelectionSettled(t) = c {
-                if std::env::var_os("MICROKIT_DEBUG").is_some() {
+                if std::env::var_os("MIKROKIT_DEBUG").is_some() {
                     eprintln!("selection settled: {t:?} ignore={}", self.0.lock().map(|s| s.ignore).unwrap_or(false));
                 }
                 if let Ok(mut s) = self.0.lock() {

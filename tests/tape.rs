@@ -1,14 +1,14 @@
 //! Tape write → read round trips through the monitor's own routines.
 
-use microkit_emu::machine::{Key, Machine};
-use microkit_emu::segments::display_text;
-use microkit_emu::tape::Tape;
+use mikrokit_emu::machine::{Key, Machine};
+use mikrokit_emu::segments::display_text;
+use mikrokit_emu::tape::Tape;
 
 const MS: u64 = 3072;
 
 fn boot(terminal: bool) -> Machine {
     let mut m = Machine::new();
-    m.load_rom(microkit_emu::roms::ORIGINAL);
+    m.load_rom(mikrokit_emu::roms::ORIGINAL);
     m.board.jumpers.j16_terminal = terminal;
     m.board.jumpers.j18_db9_2 = false; // J18 1-2: tape
     m.apply_jumpers();

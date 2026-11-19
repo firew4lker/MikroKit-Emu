@@ -67,7 +67,7 @@ mod linux {
     }
 
     fn store(shared: &AtomicU8, ctx: &eframe::egui::Context, n: u8) {
-        if std::env::var_os("MICROKIT_DEBUG").is_some() {
+        if std::env::var_os("MIKROKIT_DEBUG").is_some() {
             eprintln!("desktop color-scheme = {n} (0 none, 1 dark, 2 light)");
         }
         shared.store(n, Ordering::Relaxed);

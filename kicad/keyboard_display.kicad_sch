@@ -5,7 +5,7 @@
 	(uuid "7460112b-cbfe-5339-b456-901cde8cc817")
 	(paper "A3")
 	(title_block
-		(title "Microkit V2.0 - I/O decoding, keyboard and display")
+		(title "Mikrokit V2.0 - I/O decoding, keyboard and display")
 		(date "1985-03-07")
 		(rev "2.0")
 		(company "Micro Design Ltd (original design)")
@@ -2308,7 +2308,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "microkit:7SEG_CC"
+		(symbol "mikrokit:7SEG_CC"
 			(pin_names
 				(offset 1.016)
 			)
@@ -2361,7 +2361,7 @@
 					)
 				)
 			)
-			(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Microkit schematic)"
+			(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Mikrokit schematic)"
 				(at 0 0 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -2569,7 +2569,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "microkit:8279"
+		(symbol "mikrokit:8279"
 			(pin_names
 				(offset 1.016)
 			)
@@ -9359,7 +9359,7 @@
 			(uuid "e0775a27-0af8-5c77-906f-e34daaa4a734")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S5")
 					(unit 1)
@@ -9439,7 +9439,7 @@
 			(uuid "c1f6746a-fe6c-5f95-93cd-47b3134dba4d")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S8")
 					(unit 1)
@@ -9516,7 +9516,7 @@
 			(uuid "2cca6b50-201a-5eb8-9d3b-0a0edfce06c5")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR109")
 					(unit 1)
@@ -9595,7 +9595,7 @@
 			(uuid "be67d601-fd0d-565b-90c7-05ee61246e12")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R12")
 					(unit 1)
@@ -9674,7 +9674,7 @@
 			(uuid "75636af5-fe0c-5e77-bc81-35068e1a8713")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R19")
 					(unit 1)
@@ -9753,7 +9753,7 @@
 			(uuid "13eba484-374f-5019-bd8e-d924c4e8a5f0")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R25")
 					(unit 1)
@@ -9833,7 +9833,7 @@
 			(uuid "8069d7ce-0275-5d13-922d-af597a057ee0")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S15")
 					(unit 1)
@@ -9912,7 +9912,7 @@
 			(uuid "f874c922-38c3-591c-bab2-7696d4018288")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R26")
 					(unit 1)
@@ -10021,7 +10021,7 @@
 			(uuid "fcf05123-c0f7-5d03-a086-45ea234d9caf")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q14")
 					(unit 1)
@@ -10099,7 +10099,7 @@
 			(uuid "92b084a1-255f-537a-a794-9bebb0065010")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR107")
 					(unit 1)
@@ -10208,7 +10208,7 @@
 			(uuid "2ff80d47-aeaa-57ed-adc0-0d29c83cc1bd")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q1")
 					(unit 1)
@@ -10288,7 +10288,7 @@
 			(uuid "11adb215-5faa-5c2f-b754-381b2d160ae7")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S24")
 					(unit 1)
@@ -10367,7 +10367,7 @@
 			(uuid "ea5de8b2-7bdd-5ece-a328-a7cbd26eb729")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R7")
 					(unit 1)
@@ -10376,7 +10376,7 @@
 		)
 	)
 	(symbol
-		(lib_id "microkit:7SEG_CC")
+		(lib_id "mikrokit:7SEG_CC")
 		(at 317.5 160.02 0)
 		(unit 1)
 		(body_style 1)
@@ -10430,7 +10430,7 @@
 				)
 			)
 		)
-		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Microkit schematic)"
+		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Mikrokit schematic)"
 			(at 317.5 160.02 0)
 			(hide yes)
 			(show_name no)
@@ -10472,7 +10472,7 @@
 			(uuid "b4d53928-21e9-554b-b5cf-6a5ae5776d3c")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "DS3")
 					(unit 1)
@@ -10593,7 +10593,7 @@
 			(uuid "930c87a9-fb1a-510b-b29d-63dcc04b409a")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "IC20")
 					(unit 1)
@@ -10702,7 +10702,7 @@
 			(uuid "4f61c5a8-bd38-5b46-a097-002010eab6f5")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q5")
 					(unit 1)
@@ -10780,7 +10780,7 @@
 			(uuid "3e6e6cba-457b-5d4b-9b11-1aab970788e5")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR102")
 					(unit 1)
@@ -10857,7 +10857,7 @@
 			(uuid "bc10525d-9d88-5ef3-9466-ee8cf4476da2")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR110")
 					(unit 1)
@@ -10966,7 +10966,7 @@
 			(uuid "f2d064b9-1730-54c9-8e36-1182786452ea")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q10")
 					(unit 1)
@@ -11043,7 +11043,7 @@
 			(uuid "2c8f7433-4bb0-5c80-9528-eea9ba24ac82")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR101")
 					(unit 1)
@@ -11122,7 +11122,7 @@
 			(uuid "06f238a3-1fb7-5b37-913d-1e5f015ef0c4")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R17")
 					(unit 1)
@@ -11131,7 +11131,7 @@
 		)
 	)
 	(symbol
-		(lib_id "microkit:7SEG_CC")
+		(lib_id "mikrokit:7SEG_CC")
 		(at 271.78 198.12 0)
 		(unit 1)
 		(body_style 1)
@@ -11185,7 +11185,7 @@
 				)
 			)
 		)
-		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Microkit schematic)"
+		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Mikrokit schematic)"
 			(at 271.78 198.12 0)
 			(hide yes)
 			(show_name no)
@@ -11227,7 +11227,7 @@
 			(uuid "25a0dd76-bc02-5078-a2d0-ea38c63eadd6")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "DS6")
 					(unit 1)
@@ -11304,7 +11304,7 @@
 			(uuid "54e17534-49a0-5835-a672-86bf2e63eabf")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR100")
 					(unit 1)
@@ -11382,7 +11382,7 @@
 			(uuid "f9dfba6e-71c1-562b-88dc-8ecf930a5fb1")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR106")
 					(unit 1)
@@ -11462,7 +11462,7 @@
 			(uuid "ad75b7cf-1a8c-5835-a263-18a9b0ef6724")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S11")
 					(unit 1)
@@ -11539,7 +11539,7 @@
 			(uuid "5523069b-0e64-5c33-beb7-e7ad88c11c0f")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR112")
 					(unit 1)
@@ -11616,7 +11616,7 @@
 			(uuid "3c963888-c4c9-5e14-aafd-d3fb917ea96a")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR121")
 					(unit 1)
@@ -11725,7 +11725,7 @@
 			(uuid "0f7bdba1-be3a-57a4-a6a8-e3dc1d49e639")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q12")
 					(unit 1)
@@ -11734,7 +11734,7 @@
 		)
 	)
 	(symbol
-		(lib_id "microkit:7SEG_CC")
+		(lib_id "mikrokit:7SEG_CC")
 		(at 363.22 160.02 0)
 		(unit 1)
 		(body_style 1)
@@ -11788,7 +11788,7 @@
 				)
 			)
 		)
-		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Microkit schematic)"
+		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Mikrokit schematic)"
 			(at 363.22 160.02 0)
 			(hide yes)
 			(show_name no)
@@ -11830,7 +11830,7 @@
 			(uuid "788f4b4b-22fe-51f8-a04a-c85feb659cf0")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "DS4")
 					(unit 1)
@@ -11910,7 +11910,7 @@
 			(uuid "a13cd006-fc58-5c5a-8a5b-13fb632d0858")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S23")
 					(unit 1)
@@ -12019,7 +12019,7 @@
 			(uuid "45c1385f-ff5d-5492-88b4-626197ac0560")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q6")
 					(unit 1)
@@ -12028,7 +12028,7 @@
 		)
 	)
 	(symbol
-		(lib_id "microkit:7SEG_CC")
+		(lib_id "mikrokit:7SEG_CC")
 		(at 271.78 160.02 0)
 		(unit 1)
 		(body_style 1)
@@ -12082,7 +12082,7 @@
 				)
 			)
 		)
-		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Microkit schematic)"
+		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Mikrokit schematic)"
 			(at 271.78 160.02 0)
 			(hide yes)
 			(show_name no)
@@ -12124,7 +12124,7 @@
 			(uuid "e39b467f-d1f0-59c0-aa83-a2c2c79d6c05")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "DS2")
 					(unit 1)
@@ -12201,7 +12201,7 @@
 			(uuid "b89842f6-1dec-5401-b123-1fde84fd741e")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR104")
 					(unit 1)
@@ -12283,7 +12283,7 @@
 			(uuid "2037a519-0857-578f-a3b9-d25bd13edd61")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "J14")
 					(unit 1)
@@ -12392,7 +12392,7 @@
 			(uuid "1dc8d51c-65bd-5091-ba0f-e29e86714832")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q7")
 					(unit 1)
@@ -12471,7 +12471,7 @@
 			(uuid "7909ab47-5be2-53ee-99b8-592d94ab330e")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R15")
 					(unit 1)
@@ -12550,7 +12550,7 @@
 			(uuid "6e448e4a-3ebe-5a0d-93a8-2694a44d119a")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R23")
 					(unit 1)
@@ -12630,7 +12630,7 @@
 			(uuid "07af6620-313f-5b2b-94ef-46aa5d87a458")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S9")
 					(unit 1)
@@ -12707,7 +12707,7 @@
 			(uuid "69eec4d2-774a-5560-abec-486a19cae9d4")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR122")
 					(unit 1)
@@ -12784,7 +12784,7 @@
 			(uuid "b88589ab-367c-56a1-ac46-d81a4a0fd237")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR118")
 					(unit 1)
@@ -12893,7 +12893,7 @@
 			(uuid "05b737f7-e226-55ac-a8c2-f533c6fc1682")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q13")
 					(unit 1)
@@ -12972,7 +12972,7 @@
 			(uuid "ce8815c3-8cbc-54da-bbd3-e0588fcc1828")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R24")
 					(unit 1)
@@ -13049,7 +13049,7 @@
 			(uuid "ad1433ef-69b1-5d77-be5e-316fcc42fadc")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR108")
 					(unit 1)
@@ -13158,7 +13158,7 @@
 			(uuid "e85d81b4-0e46-50eb-9462-9ca37dc4e144")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q3")
 					(unit 1)
@@ -13167,7 +13167,7 @@
 		)
 	)
 	(symbol
-		(lib_id "microkit:7SEG_CC")
+		(lib_id "mikrokit:7SEG_CC")
 		(at 226.06 160.02 0)
 		(unit 1)
 		(body_style 1)
@@ -13221,7 +13221,7 @@
 				)
 			)
 		)
-		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Microkit schematic)"
+		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Mikrokit schematic)"
 			(at 226.06 160.02 0)
 			(hide yes)
 			(show_name no)
@@ -13263,7 +13263,7 @@
 			(uuid "19135fd8-b63a-5968-b40e-c28994a5f684")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "DS1")
 					(unit 1)
@@ -13342,7 +13342,7 @@
 			(uuid "e2761574-9119-5e9a-bd14-12bcfe964916")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R10")
 					(unit 1)
@@ -13422,7 +13422,7 @@
 			(uuid "c0952fc5-80b9-53e5-be32-eafd385a5f3d")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S19")
 					(unit 1)
@@ -13499,7 +13499,7 @@
 			(uuid "8f875d55-a374-5c4a-ba8a-a02cb20e819d")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR119")
 					(unit 1)
@@ -13608,7 +13608,7 @@
 			(uuid "340f790d-b909-57a4-a765-27eaa3362cd7")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q4")
 					(unit 1)
@@ -13687,7 +13687,7 @@
 			(uuid "9b1c54d5-f3c9-5fda-9ba6-c29a6dbbe41e")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R14")
 					(unit 1)
@@ -13766,7 +13766,7 @@
 			(uuid "2572bbed-6c0f-5637-9dd5-dbc9eefe60e1")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R18")
 					(unit 1)
@@ -13845,7 +13845,7 @@
 			(uuid "f3413c31-d4bb-5134-98da-3f3abbe39ed1")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R9")
 					(unit 1)
@@ -13922,7 +13922,7 @@
 			(uuid "29b5c774-c4d3-59ea-873e-63faf649fd0f")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR111")
 					(unit 1)
@@ -14002,7 +14002,7 @@
 			(uuid "68a794a5-1d71-5a0f-bb15-fbb4a3146049")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S14")
 					(unit 1)
@@ -14082,7 +14082,7 @@
 			(uuid "114d682d-59ac-5c41-9608-357abf80b868")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S12")
 					(unit 1)
@@ -14191,7 +14191,7 @@
 			(uuid "61978de5-1934-5df5-b30a-5faa561a401f")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q11")
 					(unit 1)
@@ -14268,7 +14268,7 @@
 			(uuid "89e25aa0-9e0d-5026-acf6-68c2bf0305fb")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR123")
 					(unit 1)
@@ -14377,7 +14377,7 @@
 			(uuid "c0e2dfef-dae0-5569-aacd-bfab808da57a")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q8")
 					(unit 1)
@@ -14457,7 +14457,7 @@
 			(uuid "f8d40625-ba8e-5170-b654-755110380da9")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S10")
 					(unit 1)
@@ -14578,7 +14578,7 @@
 			(uuid "0dfbe0a4-af25-57bb-85f9-ff03f9d53206")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "IC18")
 					(unit 1)
@@ -14658,7 +14658,7 @@
 			(uuid "1d1357f7-7b15-5d0b-9974-46ac091465ae")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S21")
 					(unit 1)
@@ -14735,7 +14735,7 @@
 			(uuid "47c2b327-997a-52df-b86a-c15bc2ebb695")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR120")
 					(unit 1)
@@ -14813,7 +14813,7 @@
 			(uuid "91b340a1-4c68-5b67-9db4-56ed89800e3d")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR105")
 					(unit 1)
@@ -14892,7 +14892,7 @@
 			(uuid "f894ffb4-d81e-5bf7-823d-e8d6f8d09d17")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R22")
 					(unit 1)
@@ -14971,7 +14971,7 @@
 			(uuid "20fc86de-c40e-5dc2-b53f-2d4de0191d11")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R13")
 					(unit 1)
@@ -15050,7 +15050,7 @@
 			(uuid "e0d336c1-c4ae-58f4-9674-7cbb2d383814")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R8")
 					(unit 1)
@@ -15130,7 +15130,7 @@
 			(uuid "8ed10eb7-8bd6-5c30-a421-43bb863870cc")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S13")
 					(unit 1)
@@ -15207,7 +15207,7 @@
 			(uuid "ed4816bc-467d-558e-a823-72f5c4280b7b")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR113")
 					(unit 1)
@@ -15287,7 +15287,7 @@
 			(uuid "6b92e752-3c11-5915-879b-d96d329aa804")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S18")
 					(unit 1)
@@ -15366,7 +15366,7 @@
 			(uuid "f8d32320-e2de-5fec-9495-f13850a3fd35")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R16")
 					(unit 1)
@@ -15446,7 +15446,7 @@
 			(uuid "1179edd3-4c2f-561e-aed2-4f5b0534fb8c")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S16")
 					(unit 1)
@@ -15525,7 +15525,7 @@
 			(uuid "25836142-c9a2-5c7d-8ac4-b430e59b13e9")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R21")
 					(unit 1)
@@ -15646,7 +15646,7 @@
 			(uuid "82bb3a1c-3fe3-50a3-b9a0-b258264303d9")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "IC17")
 					(unit 1)
@@ -15726,7 +15726,7 @@
 			(uuid "614feee3-efee-5848-909e-1dee6e0bcf83")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S20")
 					(unit 1)
@@ -15806,7 +15806,7 @@
 			(uuid "0c0015d9-a693-56cb-901a-e7628fcdb67f")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S4")
 					(unit 1)
@@ -15883,7 +15883,7 @@
 			(uuid "f823c768-c7c2-5789-a812-1950dfc06e10")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR116")
 					(unit 1)
@@ -15960,7 +15960,7 @@
 			(uuid "b788783c-6b70-503e-a76d-4ed82d8453e3")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR125")
 					(unit 1)
@@ -16039,7 +16039,7 @@
 			(uuid "ce14123f-e8fe-540a-bd0b-4e0f32410d69")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R6")
 					(unit 1)
@@ -16119,7 +16119,7 @@
 			(uuid "7842d824-c902-55c1-a622-f7802917fc51")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S22")
 					(unit 1)
@@ -16196,7 +16196,7 @@
 			(uuid "2d79f5a3-66e6-5cab-8560-2f5451f530c4")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR103")
 					(unit 1)
@@ -16273,7 +16273,7 @@
 			(uuid "13d3c9fd-94be-5d05-8cf0-92d30dc689c6")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR114")
 					(unit 1)
@@ -16350,7 +16350,7 @@
 			(uuid "f5871669-5b4f-50ea-99f0-f61024dc2dfa")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR117")
 					(unit 1)
@@ -16459,7 +16459,7 @@
 			(uuid "476a6665-3763-5b32-9a94-c81e80f8aac0")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q2")
 					(unit 1)
@@ -16568,7 +16568,7 @@
 			(uuid "7db59509-44a6-50f6-9b54-141d71cdb1f9")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "IC19")
 					(unit 1)
@@ -16577,7 +16577,7 @@
 		)
 	)
 	(symbol
-		(lib_id "microkit:8279")
+		(lib_id "mikrokit:8279")
 		(at 48.26 68.58 0)
 		(unit 1)
 		(body_style 1)
@@ -16763,7 +16763,7 @@
 			(uuid "c524f856-4115-5fb4-b8cf-aa60f5172f8e")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "IC14")
 					(unit 1)
@@ -16872,7 +16872,7 @@
 			(uuid "a28d815d-dc67-54b6-9f54-bf00bda795c3")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "Q9")
 					(unit 1)
@@ -16952,7 +16952,7 @@
 			(uuid "52b849f6-1213-571b-9fc5-42321f04501d")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S6")
 					(unit 1)
@@ -17032,7 +17032,7 @@
 			(uuid "e2d4e944-6ef4-53b4-a310-2523714e0dd7")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S7")
 					(unit 1)
@@ -17111,7 +17111,7 @@
 			(uuid "368e3252-aa8c-53c1-bef4-50f84a4b0aff")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R20")
 					(unit 1)
@@ -17120,7 +17120,7 @@
 		)
 	)
 	(symbol
-		(lib_id "microkit:7SEG_CC")
+		(lib_id "mikrokit:7SEG_CC")
 		(at 226.06 198.12 0)
 		(unit 1)
 		(body_style 1)
@@ -17174,7 +17174,7 @@
 				)
 			)
 		)
-		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Microkit schematic)"
+		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Mikrokit schematic)"
 			(at 226.06 198.12 0)
 			(hide yes)
 			(show_name no)
@@ -17216,7 +17216,7 @@
 			(uuid "ba68f97e-b630-54b3-b5a6-f4fb9b9b6873")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "DS5")
 					(unit 1)
@@ -17296,7 +17296,7 @@
 			(uuid "a693624e-03f2-50ff-a695-314e29aa8d83")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S3")
 					(unit 1)
@@ -17375,7 +17375,7 @@
 			(uuid "688d791c-cd15-5ae8-9670-6262f80c37ca")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R5")
 					(unit 1)
@@ -17455,7 +17455,7 @@
 			(uuid "690eb763-e953-5bec-b9c9-4217b04e91df")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "S17")
 					(unit 1)
@@ -17534,7 +17534,7 @@
 			(uuid "6002826c-435f-5f4f-ba18-22a29c63d071")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "R11")
 					(unit 1)
@@ -17611,7 +17611,7 @@
 			(uuid "397ef7ee-379f-565e-a075-3b68481f5cf0")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR124")
 					(unit 1)
@@ -17688,7 +17688,7 @@
 			(uuid "74e1c6d6-e368-5842-af45-677d29d19d51")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/48533ccb-2aa4-5ccb-ae1b-cde840047003"
 					(reference "#PWR115")
 					(unit 1)

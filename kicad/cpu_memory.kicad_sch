@@ -5,7 +5,7 @@
 	(uuid "c7ed7246-e3e0-5557-96c0-1c2e2b4104da")
 	(paper "A3")
 	(title_block
-		(title "Microkit V2.0 - CPU and memory")
+		(title "Mikrokit V2.0 - CPU and memory")
 		(date "1985-03-07")
 		(rev "2.0")
 		(company "Micro Design Ltd (original design)")
@@ -5193,7 +5193,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "microkit:2732"
+		(symbol "mikrokit:2732"
 			(pin_names
 				(offset 1.016)
 			)
@@ -5706,7 +5706,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "microkit:2764"
+		(symbol "mikrokit:2764"
 			(pin_names
 				(offset 1.016)
 			)
@@ -6291,7 +6291,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "microkit:6264"
+		(symbol "mikrokit:6264"
 			(pin_names
 				(offset 1.016)
 			)
@@ -6876,7 +6876,7 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "microkit:8085A"
+		(symbol "mikrokit:8085A"
 			(pin_names
 				(offset 1.016)
 			)
@@ -14762,7 +14762,7 @@
 			(uuid "fb0e73ba-5fba-52f1-a138-a4b286119d78")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC5")
 					(unit 1)
@@ -14840,7 +14840,7 @@
 			(uuid "ddd7e2bc-e862-526d-949f-619764b7eac5")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR019")
 					(unit 1)
@@ -14918,7 +14918,7 @@
 			(uuid "cc67bd59-ae2d-5d23-91e6-ec878dcffb07")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR021")
 					(unit 1)
@@ -15000,7 +15000,7 @@
 			(uuid "28291e70-dc1d-5c65-aa59-6495800f76d5")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J7")
 					(unit 1)
@@ -15082,7 +15082,7 @@
 			(uuid "2fb2af63-1acd-5354-a958-e677b8f5ba0c")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J5")
 					(unit 1)
@@ -15160,7 +15160,7 @@
 			(uuid "529a84b4-71a0-5834-ba70-eb9e53250b70")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR037")
 					(unit 1)
@@ -15269,7 +15269,7 @@
 			(uuid "77688a70-57ee-581e-8c7c-d87a0aa9cba9")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC8")
 					(unit 3)
@@ -15390,7 +15390,7 @@
 			(uuid "1b277360-3d74-5373-8a23-aea905494b25")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC6")
 					(unit 1)
@@ -15499,7 +15499,7 @@
 			(uuid "ad08d542-af35-5ff4-9060-315fa4e6e2d4")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC8")
 					(unit 2)
@@ -15577,7 +15577,7 @@
 			(uuid "b22d352b-3481-55d7-8591-d4dc4b0f6de0")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR031")
 					(unit 1)
@@ -15656,7 +15656,7 @@
 			(uuid "4acd04f2-1e6e-589c-b69d-04bdcce7f291")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "R3")
 					(unit 1)
@@ -15771,7 +15771,7 @@
 			(uuid "04a51246-33af-5ce5-80fe-d1fac2fb4903")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC7")
 					(unit 3)
@@ -15853,7 +15853,7 @@
 			(uuid "763065eb-8ca9-54a7-9ad9-18e93c3435ef")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J9")
 					(unit 1)
@@ -15930,7 +15930,7 @@
 			(uuid "78a7b4a2-9da6-5eeb-a64c-7b5aa6a2ae39")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR024")
 					(unit 1)
@@ -16009,7 +16009,7 @@
 			(uuid "8c5f533c-2d74-5d34-a24b-38eb1d4e0363")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "XTAL1")
 					(unit 1)
@@ -16118,7 +16118,7 @@
 			(uuid "12840fe9-2dc4-5ac6-a480-eaf01cbf4a69")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC8")
 					(unit 1)
@@ -16196,7 +16196,7 @@
 			(uuid "d2c98a0d-64d5-55dd-8c47-85bc99ebf930")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR006")
 					(unit 1)
@@ -16274,7 +16274,7 @@
 			(uuid "03ed076c-f684-554b-86dd-81473a0b6f23")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR007")
 					(unit 1)
@@ -16352,7 +16352,7 @@
 			(uuid "80ec7eea-42d9-5020-b763-b698888bc3e9")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR043")
 					(unit 1)
@@ -16430,7 +16430,7 @@
 			(uuid "74096de6-a4ff-5e03-8a1d-9ec830655521")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR001")
 					(unit 1)
@@ -16439,7 +16439,7 @@
 		)
 	)
 	(symbol
-		(lib_id "microkit:2732")
+		(lib_id "mikrokit:2732")
 		(at 256.54 180.34 0)
 		(unit 1)
 		(body_style 1)
@@ -16577,7 +16577,7 @@
 			(uuid "4a44e609-b73c-5e0d-aa35-fd344a4073ec")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "SC24")
 					(unit 1)
@@ -16654,7 +16654,7 @@
 			(uuid "6b79e1fc-e449-59a1-a505-54d014733f1e")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR016")
 					(unit 1)
@@ -16731,7 +16731,7 @@
 			(uuid "0d4cce43-6f79-5f54-a25c-6200238dd667")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR020")
 					(unit 1)
@@ -16809,7 +16809,7 @@
 			(uuid "c166832f-17f4-5a99-b16d-48cbda3fc0b3")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR022")
 					(unit 1)
@@ -16886,7 +16886,7 @@
 			(uuid "d198d14c-6066-5f41-b783-e125b5323328")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR032")
 					(unit 1)
@@ -17019,7 +17019,7 @@
 			(uuid "cdc73047-f284-594c-bdde-acaa779bfbc4")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC4")
 					(unit 1)
@@ -17101,7 +17101,7 @@
 			(uuid "0741fc14-4f50-581d-8cf1-1353731d5d3b")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J6")
 					(unit 1)
@@ -17178,7 +17178,7 @@
 			(uuid "b7fd3ce5-5efd-5c14-ae93-8a7e9a27c9ba")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR003")
 					(unit 1)
@@ -17293,7 +17293,7 @@
 			(uuid "18a03435-4b93-5a55-8097-c283b9a9094b")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC7")
 					(unit 4)
@@ -17372,7 +17372,7 @@
 			(uuid "abea8adf-75e0-5052-8f63-74ee0d64a144")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J1")
 					(unit 1)
@@ -17449,7 +17449,7 @@
 			(uuid "a819b3c0-fe55-5e71-a2af-050428cc944c")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR011")
 					(unit 1)
@@ -17527,7 +17527,7 @@
 			(uuid "04f2ff03-9fd7-5ca6-b337-60405bfcddfb")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR044")
 					(unit 1)
@@ -17605,7 +17605,7 @@
 			(uuid "9942a855-cbd8-5e73-ae7c-085e9abc4139")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR040")
 					(unit 1)
@@ -17683,7 +17683,7 @@
 			(uuid "029fdd28-d612-525f-8b16-1bf1ad465b5a")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR029")
 					(unit 1)
@@ -17760,7 +17760,7 @@
 			(uuid "52f0d5cd-3344-56cf-8033-bf9ac4ea48e7")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR047")
 					(unit 1)
@@ -17837,7 +17837,7 @@
 			(uuid "c96cedf3-2bfa-5e74-9948-857ccd062322")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR002")
 					(unit 1)
@@ -17915,7 +17915,7 @@
 			(uuid "d3547924-198a-559f-b8d5-62e5a928c470")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR050")
 					(unit 1)
@@ -17994,7 +17994,7 @@
 			(uuid "cc90190b-0861-59f1-823d-1e79541d8a4d")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "R2")
 					(unit 1)
@@ -18075,7 +18075,7 @@
 			(uuid "182f10f0-6176-5a2d-9926-ad9093d4e89c")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "C1")
 					(unit 1)
@@ -18156,7 +18156,7 @@
 			(uuid "35f7d37f-ae8b-59dc-af24-81286fbe7f63")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "C2")
 					(unit 1)
@@ -18233,7 +18233,7 @@
 			(uuid "84eec77e-434c-5330-a27f-96c116d71764")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR009")
 					(unit 1)
@@ -18310,7 +18310,7 @@
 			(uuid "5ac3686f-d085-5a88-8c20-d45853b85c7e")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR041")
 					(unit 1)
@@ -18388,7 +18388,7 @@
 			(uuid "1f19efad-174b-5596-b85d-4555a2c6a8cf")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR005")
 					(unit 1)
@@ -18465,7 +18465,7 @@
 			(uuid "4e587fde-d951-5934-932d-114faf449c2b")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR023")
 					(unit 1)
@@ -18543,7 +18543,7 @@
 			(uuid "f0c59bdb-f318-5ea1-9f91-b105153091dc")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR039")
 					(unit 1)
@@ -18622,7 +18622,7 @@
 			(uuid "4241405b-a8a8-5ce0-a113-124646ef2b42")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J3")
 					(unit 1)
@@ -18699,7 +18699,7 @@
 			(uuid "989ee8aa-0583-53b3-8b14-3bbd0c705093")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR046")
 					(unit 1)
@@ -18776,7 +18776,7 @@
 			(uuid "1e1d7f07-d77d-5866-8bc3-fe05fa18d515")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR015")
 					(unit 1)
@@ -18853,7 +18853,7 @@
 			(uuid "5f5ccdd1-fdce-5729-b61a-f82c88f6258d")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR018")
 					(unit 1)
@@ -18962,7 +18962,7 @@
 			(uuid "46c8b7df-282f-5f31-9c43-b602571292d5")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC19")
 					(unit 3)
@@ -19041,7 +19041,7 @@
 			(uuid "4db27a55-7653-569e-b961-317cb0498108")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J2")
 					(unit 1)
@@ -19119,7 +19119,7 @@
 			(uuid "806e3d2d-611f-5d7d-b48d-10839889d4c1")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR030")
 					(unit 1)
@@ -19196,7 +19196,7 @@
 			(uuid "24851c35-65d7-5ab9-883d-af376e43283f")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR042")
 					(unit 1)
@@ -19274,7 +19274,7 @@
 			(uuid "084a880d-cd2a-52a8-948e-eedfd630e962")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR049")
 					(unit 1)
@@ -19354,7 +19354,7 @@
 			(uuid "c24b7abb-ebbc-57b7-8879-2d838f56b93f")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "S2")
 					(unit 1)
@@ -19432,7 +19432,7 @@
 			(uuid "28a3cd3b-017e-5588-a19c-314fa98e770a")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR017")
 					(unit 1)
@@ -19509,7 +19509,7 @@
 			(uuid "a2ed116b-9281-586f-824d-79f1012bd4cd")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR012")
 					(unit 1)
@@ -19586,7 +19586,7 @@
 			(uuid "db83df49-eb11-5951-ac77-7213445f6ce2")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR033")
 					(unit 1)
@@ -19663,7 +19663,7 @@
 			(uuid "f7ad141a-470c-5366-bc0a-6c241a0813b5")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR045")
 					(unit 1)
@@ -19741,7 +19741,7 @@
 			(uuid "8fa2e3eb-73ec-56d1-b13e-77a1bbd705c1")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR038")
 					(unit 1)
@@ -19818,7 +19818,7 @@
 			(uuid "7dd5e057-3c99-51a4-9d1b-b61580a29e2e")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR013")
 					(unit 1)
@@ -19897,7 +19897,7 @@
 			(uuid "791a9a95-c5b8-5aab-b7c4-c6b71586b52d")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J4")
 					(unit 1)
@@ -19974,7 +19974,7 @@
 			(uuid "42a1821b-3de9-5e90-ac40-372223f45545")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR026")
 					(unit 1)
@@ -20052,7 +20052,7 @@
 			(uuid "55eb9133-8c42-54df-991a-e159d3c7d3d2")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR036")
 					(unit 1)
@@ -20129,7 +20129,7 @@
 			(uuid "6d253ce6-125a-529f-8eb7-67a840f6122d")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR010")
 					(unit 1)
@@ -20207,7 +20207,7 @@
 			(uuid "611ee843-be2b-56ef-8ad2-3da05f204f69")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR027")
 					(unit 1)
@@ -20382,7 +20382,7 @@
 			(uuid "41a64b6c-6ae6-5d6a-8b8a-ac17296e6fd6")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "X1")
 					(unit 1)
@@ -20459,7 +20459,7 @@
 			(uuid "af998989-ca4a-593c-9894-5b70a93a873c")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR025")
 					(unit 1)
@@ -20574,7 +20574,7 @@
 			(uuid "a02d53b5-8454-5fd5-8579-3cf638c72bc7")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC7")
 					(unit 5)
@@ -20683,7 +20683,7 @@
 			(uuid "4962f4c3-29df-58c4-99ff-067962383fd8")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC19")
 					(unit 2)
@@ -20762,7 +20762,7 @@
 			(uuid "a80a4c44-0826-5b24-bace-576b7cecdc59")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "R4")
 					(unit 1)
@@ -20839,7 +20839,7 @@
 			(uuid "2336a740-0ec9-5833-b91f-432373bfd6e3")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR034")
 					(unit 1)
@@ -20918,7 +20918,7 @@
 			(uuid "75347410-4ddf-5d49-beba-fb3835a64038")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J13")
 					(unit 1)
@@ -20996,7 +20996,7 @@
 			(uuid "04a08422-388c-573a-a069-55c13285e18f")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR051")
 					(unit 1)
@@ -21005,7 +21005,7 @@
 		)
 	)
 	(symbol
-		(lib_id "microkit:8085A")
+		(lib_id "mikrokit:8085A")
 		(at 162.56 63.5 0)
 		(unit 1)
 		(body_style 1)
@@ -21191,7 +21191,7 @@
 			(uuid "5b08d3c3-196e-5d0d-a9df-1782aac46efe")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC1")
 					(unit 1)
@@ -21273,7 +21273,7 @@
 			(uuid "5f41d3fb-c1bd-5a38-9f7b-3b23497bf3b6")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J12")
 					(unit 1)
@@ -21355,7 +21355,7 @@
 			(uuid "0e60b80c-8f74-5ca7-8b03-f58a8fbb8f2b")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J11")
 					(unit 1)
@@ -21437,7 +21437,7 @@
 			(uuid "28629eac-de80-5fbe-abbd-02908fb932a9")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J10")
 					(unit 1)
@@ -21552,7 +21552,7 @@
 			(uuid "e2e294a2-0ee5-5b12-a189-851196479397")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC7")
 					(unit 1)
@@ -21561,7 +21561,7 @@
 		)
 	)
 	(symbol
-		(lib_id "microkit:2764")
+		(lib_id "mikrokit:2764")
 		(at 363.22 55.88 0)
 		(unit 1)
 		(body_style 1)
@@ -21711,7 +21711,7 @@
 			(uuid "3d6a832a-ec3f-50b2-a0b5-ddc1dc6a9977")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC2")
 					(unit 1)
@@ -21789,7 +21789,7 @@
 			(uuid "feb9a0d0-49df-52b4-9391-41cee20044fa")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR008")
 					(unit 1)
@@ -21798,7 +21798,7 @@
 		)
 	)
 	(symbol
-		(lib_id "microkit:6264")
+		(lib_id "mikrokit:6264")
 		(at 355.6 139.7 0)
 		(unit 1)
 		(body_style 1)
@@ -21948,7 +21948,7 @@
 			(uuid "3f121b46-3109-54d6-b4d5-0fd4daae984c")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC3")
 					(unit 1)
@@ -22026,7 +22026,7 @@
 			(uuid "56a4ad2c-e09d-50fa-aaa2-3d4c81d84090")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR014")
 					(unit 1)
@@ -22105,7 +22105,7 @@
 			(uuid "a5faf3e0-7ecf-5b7c-81e5-855b3e39be14")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "R1")
 					(unit 1)
@@ -22182,7 +22182,7 @@
 			(uuid "19ad7e29-6563-5dc0-91cb-fe1c19a65b68")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR048")
 					(unit 1)
@@ -22260,7 +22260,7 @@
 			(uuid "97b4a3d0-cfcf-51a5-93cc-487830955476")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR028")
 					(unit 1)
@@ -22375,7 +22375,7 @@
 			(uuid "122b46f1-cfa5-5f31-9ffd-6429c357bc93")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "IC7")
 					(unit 2)
@@ -22453,7 +22453,7 @@
 			(uuid "4ce0750b-50a7-50b8-9f36-ad16ef054d1d")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR004")
 					(unit 1)
@@ -22530,7 +22530,7 @@
 			(uuid "2e45888c-bfd9-531e-8b52-826befc2c000")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "#PWR035")
 					(unit 1)
@@ -22610,7 +22610,7 @@
 			(uuid "d08405ed-848d-577f-bcd7-9d727009748a")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "S1")
 					(unit 1)
@@ -22692,7 +22692,7 @@
 			(uuid "474e978a-05e6-5ece-b599-7e9297d55e56")
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97/4e16df29-3e6f-5f05-ab8d-d89b7db03f3e"
 					(reference "J8")
 					(unit 1)

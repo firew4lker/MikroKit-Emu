@@ -1,4 +1,4 @@
-"""Take the manual's screenshots by driving MicroKit-Emu in a virtual X display.
+"""Take the manual's screenshots by driving MikroKit-Emu in a virtual X display.
 
 Needs Xvfb running on :99 (Xvfb :99 -screen 0 1280x800x24 &), xdotool,
 ImageMagick's `import`, Pillow, and a release build (cargo build --release).
@@ -17,7 +17,7 @@ import time
 
 import tempfile
 
-S = os.path.join(tempfile.gettempdir(), 'microkit-shots')
+S = os.path.join(tempfile.gettempdir(), 'mikrokit-shots')
 os.makedirs(S, exist_ok=True)
 EMU = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 OUT = os.path.join(EMU, 'docs', 'images')
@@ -54,21 +54,21 @@ class Run:
         self.lang = lang
         x = os.path.join(S, 'xdgshot')
         shutil.rmtree(x, ignore_errors=True)
-        os.makedirs(os.path.join(x, 'microkit-emu'))
+        os.makedirs(os.path.join(x, 'mikrokit-emu'))
         ron = settings_ron(lang, settings)
-        with open(os.path.join(x, 'microkit-emu', 'app.ron'), 'w') as f:
+        with open(os.path.join(x, 'mikrokit-emu', 'app.ron'), 'w') as f:
             f.write('{\n    "settings": ' + json.dumps(ron) + ',\n}\n')
         env = dict(ENV, XDG_DATA_HOME=x)
-        self.p = subprocess.Popen([os.path.join(EMU, 'target/release/microkit-emu'), *args], cwd=EMU, env=env,
+        self.p = subprocess.Popen([os.path.join(EMU, 'target/release/mikrokit-emu'), *args], cwd=EMU, env=env,
                                   stdout=subprocess.DEVNULL,
-                                  stderr=open(os.environ['MICROKIT_SHOT_LOG'], 'a') if os.environ.get('MICROKIT_SHOT_LOG') else subprocess.DEVNULL)
+                                  stderr=open(os.environ['MIKROKIT_SHOT_LOG'], 'a') if os.environ.get('MIKROKIT_SHOT_LOG') else subprocess.DEVNULL)
         for _ in range(60):
             r = subprocess.run(['xwininfo', '-root', '-tree'], env=ENV, capture_output=True, text=True)
-            if 'MicroKit-Emu' in r.stdout:
+            if 'MikroKit-Emu' in r.stdout:
                 break
             time.sleep(0.25)
         time.sleep(2)
-        xdo('search', '--name', 'MicroKit-Emu', 'windowfocus')
+        xdo('search', '--name', 'MikroKit-Emu', 'windowfocus')
 
     def click(self, x, y, wait=0.3):
         xdo('mousemove', x, y, 'click', 1)
@@ -218,6 +218,20 @@ def lcd(lang):
     r.close()
 
 
+def readme(lang):
+    """The README's picture: a terminal session and the LCD example (English only)."""
+    if lang != 'en':
+        return
+    r = Run(lang, {'jumpers': jumpers(terminal=True), 'lcd': 'L20x4', 'show_lcd': 'true'}, ['examples/lcd.asm'])
+    term_focus(r)
+    r.type('D2000,203F\r', 1.2)
+    r.type('G\r', 2.0)
+    r.drag(610, 107, 950, 470)  # the LCD window away from the text
+    r.shot('readme')
+    r.close()
+    os.replace(os.path.join(OUT, 'readme-en.png'), os.path.join(OUT, 'screenshot.png'))
+
+
 def lcd_menu(lang):
     r = Run(lang, {'jumpers': jumpers()})
     r.click(MENU[lang]['lcd'], 12, 0.6)
@@ -270,7 +284,7 @@ def dark(lang):
     r.close()
 
 
-ALL = [main_window, keypad_boot, keypad_memory, terminal, rom_menu, basic, lcd, lcd_menu, ports, debug, tape, dark]
+ALL = [main_window, keypad_boot, keypad_memory, terminal, rom_menu, basic, lcd, lcd_menu, ports, debug, tape, dark, readme]
 
 def numbered():
     """Red numbered markers on the main-window screenshot (see section 3)."""

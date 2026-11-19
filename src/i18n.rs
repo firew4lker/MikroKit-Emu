@@ -186,7 +186,7 @@ const GREEK: &[(&str, &str)] = &[
     // ----- board
     ("address", "διεύθυνση"),
     ("data", "δεδομένα"),
-    ("MICROKIT V2.0 · click here, then type: 0-F, M R G S N . (Enter = EX)", "MICROKIT V2.0 · κλικ εδώ και πληκτρολογήστε: 0-F, M R G S N . (Enter = EX)"),
+    ("MIKROKIT V2.0 · click here, then type: 0-F, M R G S N . (Enter = EX)", "MIKROKIT V2.0 · κλικ εδώ και πληκτρολογήστε: 0-F, M R G S N . (Enter = EX)"),
     ("RS: reset (F9)", "RS: επαναφορά (F9)"),
     ("VI: vector interrupt, RST 7.5 (F10)", "VI: διακοπή, RST 7.5 (F10)"),
     ("SS: single step (S)", "SS: βηματική εκτέλεση (S)"),
@@ -296,7 +296,7 @@ const GREEK: &[(&str, &str)] = &[
     ("to", "έως"),
     ("Save…", "Αποθήκευση…"),
     ("Enter hex addresses like 2000 and 20FF", "Δώστε δεκαεξαδικές διευθύνσεις, π.χ. 2000 και 20FF"),
-    ("MicroKit-Emu — keys and usage", "MicroKit-Emu — πλήκτρα και χρήση"),
+    ("MikroKit-Emu — keys and usage", "MikroKit-Emu — πλήκτρα και χρήση"),
 ];
 
 #[cfg(test)]

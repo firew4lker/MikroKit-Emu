@@ -1,4 +1,4 @@
-"""The Microkit V2.0 circuit, read from the scanned schematic (Micro Design,
+"""The Mikrokit V2.0 circuit, read from the scanned schematic (Micro Design,
 7-3-1985, sheets 1-3). One entry per symbol unit: pin number -> net.
 Pins left out are marked no-connect. Net names follow the original
 labels; ~{X} is KiCad's overbar (active low).
@@ -91,7 +91,7 @@ x1 = {33: 'AD0', 34: 'AD1', 31: 'AD2', 32: 'AD3', 29: 'AD4', 30: 'AD5', 27: 'AD6
       8: 'IO~{M}', 7: 'ALE', 5: 'RESET', 10: '~{RD}', 9: '~{WR}', 6: 'CLK', 3: 'RST6.5', 1: GND, 2: GND, 4: GND}
 
 SHEET1 = [
-    P('IC1', 'microkit:8085A', '8085A', cpu),
+    P('IC1', 'mikrokit:8085A', '8085A', cpu),
     P('XTAL1', 'Device:Crystal', '6.144MHz', {1: 'XTAL1', 2: 'XTAL2'}, fp='Crystal:Crystal_HC49-U_Vertical'),
     J2('J13', 'TRAP', 'CPU_TRAP', 'J13 TRAP enable'),
     J2('J1', GND, 'CPU_TRAP'), J2('J2', GND, 'RST6.5'), J2('J3', GND, 'INTR'), J2('J4', GND, 'HOLD'),
@@ -116,9 +116,9 @@ SHEET1 = [
     P('IC19', '74xx:74LS20', '74LS20', {9: 'A14_A15_LOW', 10: '~{A13}', 12: 'A12', 13: 'J11_SEL', 8: '~{CS_SC24}'}, 2, FP['DIP14']),
     gate_power('IC19', '74xx:74LS20', 3),
     J3('J5', VCC, 'ROM_A11', 'A11'), J3('J6', '~{MEMW}', 'RAM_A11', 'A11'), J3('J12', VCC, 'SC24_A11', 'A11'),
-    P('IC2', 'microkit:2764', '2764', rom),
-    P('IC3', 'microkit:6264', '6264', ram),
-    P('SC24', 'microkit:2732', '2732 (socket SC24)', sc24),
+    P('IC2', 'mikrokit:2764', '2764', rom),
+    P('IC3', 'mikrokit:6264', '6264', ram),
+    P('SC24', 'mikrokit:2732', '2732 (socket SC24)', sc24),
     P('X1', 'Connector_Generic:Conn_02x17_Odd_Even', 'X1 expansion', x1, fp='Connector_IDC:IDC-Header_2x17_P2.54mm_Vertical'),
 ]
 
@@ -148,10 +148,10 @@ j17.update({12 + k: 'BAUD_CLK' for k in range(11)})
 
 LM = 'Amplifier_Operational:LM324'
 SHEET2 = [
-    P('IC13', 'microkit:8251A', '8251A', usart),
-    P('IC9', 'microkit:MC1488', 'MC1488', {2: 'SOD', 3: 'TXD2_RS', 4: 'TXD1_TTL', 5: 'TXD1_TTL', 6: 'TXD1_RS',
+    P('IC13', 'mikrokit:8251A', '8251A', usart),
+    P('IC9', 'mikrokit:MC1488', 'MC1488', {2: 'SOD', 3: 'TXD2_RS', 4: 'TXD1_TTL', 5: 'TXD1_TTL', 6: 'TXD1_RS',
                                           9: 'RTS1_TTL', 10: 'RTS1_TTL', 8: 'RTS1_RS', 14: '+12V', 1: '-12V', 7: GND}),
-    P('IC10', 'microkit:MC1489', 'MC1489', {1: 'RXD2_RS', 3: 'RXD2_TTL', 10: 'RXD1_RS', 8: 'RXD1_TTL',
+    P('IC10', 'mikrokit:MC1489', 'MC1489', {1: 'RXD2_RS', 3: 'RXD2_TTL', 10: 'RXD1_RS', 8: 'RXD1_TTL',
                                            13: 'CTS1_RS', 11: 'CTS1_TTL', 14: VCC, 7: GND}),
     P('DB1', 'Connector:DE9_Socket', 'DB9-1 (serial port 1)', {3: 'TXD1_RS', 5: 'RTS1_RS', 2: 'RXD1_RS', 4: 'CTS1_RS', 7: GND},
       fp='Connector_Dsub:DSUB-9_Socket_Horizontal_P2.77x2.84mm_EdgePinOffset7.70mm_Housed_MountingHolesOffset9.12mm'),
@@ -163,7 +163,7 @@ SHEET2 = [
     P('IC15', '4xxx:4040', 'CD4040', ctr, fp=FP['DIP16']),
     P('J17', 'Connector_Generic:Conn_02x11_Top_Bottom', 'J17 baud rate', j17,
       fp='Connector_PinHeader_2.54mm:PinHeader_2x11_P2.54mm_Vertical'),
-    P('IC12', 'microkit:8155', '8155', pio),
+    P('IC12', 'mikrokit:8155', '8155', pio),
     P('X2', 'Connector_Generic:Conn_02x13_Odd_Even', 'X2 parallel I/O', x2, fp='Connector_IDC:IDC-Header_2x13_P2.54mm_Vertical'),
     P('IC21', '74xx:74LS125', '74LS125', {1: '~{CS2}', 2: 'J16_IN', 3: 'AD0'}, 1, FP['DIP14']),
     P('IC21', '74xx:74LS125', '74LS125', {4: '~{CS5}', 5: 'X3_1', 6: 'AD0'}, 2, FP['DIP14']),
@@ -219,7 +219,7 @@ SHEET3 = [
     P('IC17', '74xx:74LS138', '74LS138', {1: 'A12', 2: 'A13', 3: 'A14', 6: 'IO~{M}', 4: 'A15', 5: '~{A9A10A11}',
                                           15: '~{CS2}', 14: '~{CS3}', 13: '~{CS4}', 12: '~{CS5}', 8: GND, 16: VCC}, fp=FP['DIP16']),
     P('IC19', '74xx:74LS20', '74LS20', {1: VCC, 2: 'A9', 4: 'A10', 5: 'A11', 6: '~{A9A10A11}'}, 1, FP['DIP14']),
-    P('IC14', 'microkit:8279', '8279', kbd),
+    P('IC14', 'mikrokit:8279', '8279', kbd),
     P('IC20', '74xx:74LS156', '74LS156', {13: 'SL0', 3: 'SL1', 1: 'SL2', 15: 'SL2', 2: 'RESET', 14: 'RESET',
                                           7: 'SCAN4', 6: 'SCAN5', 9: 'SCAN0', 10: 'SCAN1', 11: 'SCAN2', 12: 'SCAN3',
                                           8: GND, 16: VCC}, fp=FP['DIP16']),
@@ -238,7 +238,7 @@ for k in range(6):
     SHEET3 += [
         R(f'R{13 + k}', '100', f'SCAN{k}', f'Q{q}_B'),
         P(f'Q{q}', 'Transistor_BJT:BC557', 'BC557', {2: f'Q{q}_B', 3: f'DIG{k + 1}', 1: GND}, fp=FP['Q']),
-        P(f'DS{k + 1}', 'microkit:7SEG_CC', '7-segment', {SEG_PIN[s]: f'SEG_{s}' for s in SEGS} | {4: f'DIG{k + 1}', 12: f'DIG{k + 1}'}),
+        P(f'DS{k + 1}', 'mikrokit:7SEG_CC', '7-segment', {SEG_PIN[s]: f'SEG_{s}' for s in SEGS} | {4: f'DIG{k + 1}', 12: f'DIG{k + 1}'}),
     ]
 # keypad: rows are scan lines 0..2, columns are return lines KEY0..7
 KEYS = [['0', '1', '2', '3', '4', '5', '6', '7'], ['8', '9', 'A', 'B', 'C', 'D', 'E', 'F'], ['EX', 'N', 'GO', 'M', 'R', 'SS']]

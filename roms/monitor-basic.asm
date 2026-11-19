@@ -3930,7 +3930,7 @@ COPYRIGHT DB " MICRO DESIGN LTD  1985,1991 "
 ;                 ADDED FIX FOR BUGGY CHGSGN
 ;                 UDO MUNK, 10 DECEMBER 2019
 ;
-;         PORTED TO THE MICROKIT 8085 MONITOR ROM, 2026:
+;         PORTED TO THE MIKROKIT 8085 MONITOR ROM, 2026:
 ;         - THE RST 1..7 SUBROUTINES BECAME ORDINARY CALLS
 ;           (THE MONITOR OWNS THE RST VECTORS)
 ;         - I/O THROUGH THE 8251 USART (DB9-1)
@@ -5343,7 +5343,7 @@ CK10:    CPI  3H                         ;IS IT CONTROL-C?
 ;
 ;*************************************************************
 ;
-; *** MICROKIT ADDITIONS: PEEK *** IN *** POKE *** OUT *** BYE ***
+; *** MIKROKIT ADDITIONS: PEEK *** IN *** POKE *** OUT *** BYE ***
 ;
 ; 'PEEK(ADDR)' RETURNS THE BYTE AT ADDR.
 ; 'IN(PORT)' READS AN INPUT PORT.

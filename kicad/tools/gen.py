@@ -1,4 +1,4 @@
-"""Generate the Microkit KiCad project from circuit.py.
+"""Generate the Mikrokit KiCad project from circuit.py.
 
 Every pin gets a short wire and a net label (or a power symbol, or a
 no-connect flag), so the drawing is a labelled-net schematic: parts are
@@ -22,7 +22,7 @@ import circuit  # noqa: E402
 import symbols  # noqa: E402
 
 OUT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-PROJECT = 'microkit'
+PROJECT = 'mikrokit'
 NS = uuid.UUID('5b1f7c1e-2f43-4f8e-9a7e-8085a0000000')
 G = 2.54
 STUB = 2.54
@@ -400,7 +400,7 @@ class Sheet:
             [S('instances'), [S('project'), PROJECT, [S('path'), self.path, [S('reference'), ref], [S('unit'), 1]]]]])
 
     def file(self, sheet_uuid, page_no, total):
-        tb = [S('title_block'), [S('title'), f'Microkit V2.0 - {self.title}'], [S('date'), '1985-03-07'], [S('rev'), '2.0'],
+        tb = [S('title_block'), [S('title'), f'Mikrokit V2.0 - {self.title}'], [S('date'), '1985-03-07'], [S('rev'), '2.0'],
               [S('company'), 'Micro Design Ltd (original design)'],
               [S('comment'), 1, f'Redrawn in KiCad from the scanned schematic, {self.note}'],
               [S('comment'), 2, 'Connections are by net label; see NOTES.md for parts that could not be read with certainty']]
@@ -452,7 +452,7 @@ def main():
                       [S('property'), 'Sheetname', f'{i + 1}. {sh.title}', [S('at'), x, y - 0.7, 0], font([S('justify'), S('left'), S('bottom')])],
                       [S('property'), 'Sheetfile', f'{sh.name}.kicad_sch', [S('at'), x, y + 30.6, 0], font([S('justify'), S('left'), S('top')])],
                       [S('instances'), [S('project'), PROJECT, [S('path'), f'/{root_uuid}', [S('page'), str(i + 2)]]]]])
-    items.append([S('text'), 'Microkit V2.0 8085 trainer (Micro Design Ltd, Athens, 1985).\n'
+    items.append([S('text'), 'Mikrokit V2.0 8085 trainer (Micro Design Ltd, Athens, 1985).\n'
                              'Redrawn in KiCad from the three scanned schematic sheets dated 7-3-1985.\n'
                              'Reference designators, jumper numbers and connector pin numbers follow the original.\n'
                              'See NOTES.md for what was inferred and what to check on a real board.',
@@ -460,23 +460,23 @@ def main():
                   [S('uuid'), uid('root', 'text')]])
     root = [S('kicad_sch'), [S('version'), 20231120], [S('generator'), 'eeschema'], [S('generator_version'), '8.0'],
             [S('uuid'), root_uuid], [S('paper'), 'A4'],
-            [S('title_block'), [S('title'), 'Microkit V2.0'], [S('date'), '1985-03-07'], [S('rev'), '2.0'],
+            [S('title_block'), [S('title'), 'Mikrokit V2.0'], [S('date'), '1985-03-07'], [S('rev'), '2.0'],
              [S('company'), 'Micro Design Ltd (original design)'], [S('comment'), 1, 'KiCad redraw of the scanned schematic']],
             [S('lib_symbols')]] + items + [[S('sheet_instances'), [S('path'), '/', [S('page'), '1']]]]
     with open(os.path.join(OUT, f'{PROJECT}.kicad_sch'), 'w') as f:
         f.write(dump(root) + '\n')
 
     # project library, library table and project file
-    lib = [S('kicad_symbol_lib'), [S('version'), 20231120], [S('generator'), 'microkit_gen']] + [copy.deepcopy(s) for s in symbols.SYMBOLS]
+    lib = [S('kicad_symbol_lib'), [S('version'), 20231120], [S('generator'), 'mikrokit_gen']] + [copy.deepcopy(s) for s in symbols.SYMBOLS]
     with open(os.path.join(OUT, f'{PROJECT}.kicad_sym'), 'w') as f:
         f.write(dump(lib) + '\n')
     with open(os.path.join(OUT, 'sym-lib-table'), 'w') as f:
-        f.write('(sym_lib_table\n  (version 7)\n  (lib (name "microkit")(type "KiCad")(uri "${KIPRJMOD}/microkit.kicad_sym")'
-                '(options "")(descr "Microkit parts missing from the KiCad libraries"))\n)\n')
+        f.write('(sym_lib_table\n  (version 7)\n  (lib (name "mikrokit")(type "KiCad")(uri "${KIPRJMOD}/mikrokit.kicad_sym")'
+                '(options "")(descr "Mikrokit parts missing from the KiCad libraries"))\n)\n')
     pro = os.path.join(OUT, f'{PROJECT}.kicad_pro')
     if not os.path.exists(pro):
         with open(pro, 'w') as f:
-            f.write('{\n  "meta": {\n    "filename": "microkit.kicad_pro",\n    "version": 3\n  }\n}\n')
+            f.write('{\n  "meta": {\n    "filename": "mikrokit.kicad_pro",\n    "version": 3\n  }\n}\n')
 
     def run(*args):
         r = subprocess.run(['kicad-cli', *args], capture_output=True, text=True)

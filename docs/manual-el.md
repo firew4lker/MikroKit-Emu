@@ -1,6 +1,6 @@
-# Εγχειρίδιο χρήσης του MicroKit-Emu
+# Εγχειρίδιο χρήσης του MikroKit-Emu
 
-*Εξομοιωτής του εκπαιδευτικού συστήματος 8085 Microkit V2.0 της Micro Design (Αθήνα, 1985)*
+*Εξομοιωτής του εκπαιδευτικού συστήματος 8085 Mikrokit V2.0 της Micro Design (Αθήνα, 1985)*
 
 ---
 
@@ -27,7 +27,7 @@
 
 ## 1. Εισαγωγή
 
-Το **Microkit** είναι ένας εκπαιδευτικός υπολογιστής με τον
+Το **Mikrokit** είναι ένας εκπαιδευτικός υπολογιστής με τον
 μικροεπεξεργαστή Intel 8085, κατασκευασμένος από τη Micro Design Ltd στην
 Αθήνα τη δεκαετία του 1980. Έχει οθόνη έξι ψηφίων LED, πληκτρολόγιο 24
 πλήκτρων, δύο σειριακές θύρες, σύνδεση για κασετόφωνο και ακροδέκτη
@@ -36,7 +36,7 @@
 καταχωρητές, να εκτελείτε προγράμματα εντολή προς εντολή, να φορτώνετε
 προγράμματα από σειριακή γραμμή και να τα αποθηκεύετε σε κασέτα.
 
-Το **MicroKit-Emu** αναπαράγει την πλακέτα στον υπολογιστή σας. Εκτελεί
+Το **MikroKit-Emu** αναπαράγει την πλακέτα στον υπολογιστή σας. Εκτελεί
 αυτούσιο το αρχικό πρόγραμμα monitor από την EPROM του κιτ, με τον
 επεξεργαστή να τρέχει στην πραγματική ταχύτητα της πλακέτας (3.072 MHz,
 μετρώντας κάθε κύκλο ρολογιού). Έτσι τα προγράμματα συμπεριφέρονται όπως
@@ -66,8 +66,8 @@
 Αποσυμπιέστε το αρχείο και εκτελέστε το πρόγραμμα:
 
 ```bash
-tar xzf microkit-emu-linux-x86_64.tar.gz
-./microkit-emu/microkit-emu
+tar xzf mikrokit-emu-linux-x86_64.tar.gz
+./mikrokit-emu/mikrokit-emu
 ```
 
 Ο φάκελος περιέχει επίσης το README και τον φάκελο `examples` με τα
@@ -76,8 +76,8 @@ tar xzf microkit-emu-linux-x86_64.tar.gz
 
 ### Windows (έτοιμο πρόγραμμα)
 
-Αποσυμπιέστε το `microkit-emu-windows-x86_64.zip` και κάντε διπλό κλικ
-στο `microkit-emu.exe` μέσα στον φάκελο `microkit-emu`. Χρειάζεται Windows
+Αποσυμπιέστε το `mikrokit-emu-windows-x86_64.zip` και κάντε διπλό κλικ
+στο `mikrokit-emu.exe` μέσα στον φάκελο `mikrokit-emu`. Χρειάζεται Windows
 10 ή νεότερα και τίποτε άλλο. Ο φάκελος περιέχει επίσης το README, τα
 εγχειρίδια και τον φάκελο `examples`.
 
@@ -85,10 +85,10 @@ tar xzf microkit-emu-linux-x86_64.tar.gz
 προγράμματος (Vulkan ή Direct3D 12), ακόμη κι αν «κρασάρει», το πρόγραμμα
 ξεκινά ξανά με OpenGL και θυμάται ότι σε αυτόν τον υπολογιστή δουλεύει το
 OpenGL. Αν αποτύχει και αυτό, ένα μήνυμα εξηγεί την αιτία και η αναφορά
-αποθηκεύεται στο `%APPDATA%\MicroKit-Emu\data\error.log`. Συνήθως
+αποθηκεύεται στο `%APPDATA%\MikroKit-Emu\data\error.log`. Συνήθως
 βοηθά η ενημέρωση του οδηγού γραφικών· σε εικονική μηχανή, ενεργοποιήστε
 την επιτάχυνση 3D. Μετά από ενημέρωση του οδηγού, ξεκινήστε το μία φορά με
-`microkit-emu.exe --renderer wgpu` για να χρησιμοποιήσει ξανά τον
+`mikrokit-emu.exe --renderer wgpu` για να χρησιμοποιήσει ξανά τον
 κανονικό τρόπο.
 
 ### Μεταγλώττιση από τον πηγαίο κώδικα (Linux, Windows, macOS)
@@ -103,7 +103,7 @@ cargo run --release
 ### Γραμμή εντολών
 
 ```
-microkit-emu [επιλογές] [program.hex | program.asm | program.bin]
+mikrokit-emu [επιλογές] [program.hex | program.asm | program.bin]
 ```
 
 | Επιλογή | Σημασία |
@@ -368,8 +368,8 @@ START:  MVI A,47H       ; A = 47H
 Για συμβολομετάφραση χωρίς άνοιγμα παραθύρου:
 
 ```bash
-microkit-emu --assemble program.asm -o program.hex
-microkit-emu --assemble program.asm -o program.bin --symbols
+mikrokit-emu --assemble program.asm -o program.hex
+mikrokit-emu --assemble program.asm -o program.bin --symbols
 ```
 
 Η έξοδος `.bin` είναι πλήρης εικόνα ROM 8 KB (0000–1FFF), χρήσιμη για να
@@ -444,9 +444,9 @@ microkit-emu --assemble program.asm -o program.bin --symbols
 
 ## 9. Το κασετόφωνο
 
-Το Microkit αποθηκεύει προγράμματα σε απλό κασετόφωνο. Ο εξομοιωτής έχει
+Το Mikrokit αποθηκεύει προγράμματα σε απλό κασετόφωνο. Ο εξομοιωτής έχει
 ένα εικονικό κασετόφωνο που αποθηκεύει τις «κασέτες» ως αρχεία ήχου WAV:
-μπορείτε ακόμη και να τις παίξετε σε πραγματικό Microkit ή να ηχογραφήσετε
+μπορείτε ακόμη και να τις παίξετε σε πραγματικό Mikrokit ή να ηχογραφήσετε
 την κασέτα ενός πραγματικού κιτ και να τη φορτώσετε.
 
 ![Εγγραφή κασέτας](images/tape-recorded-el.png)
@@ -677,6 +677,6 @@ microkit-emu --assemble program.asm -o program.bin --symbols
 
 ---
 
-*MicroKit-Emu. Το Microkit σχεδιάστηκε από τη Micro Design Ltd. Η Tiny
+*MikroKit-Emu. Το Mikrokit σχεδιάστηκε από τη Micro Design Ltd. Η Tiny
 BASIC είναι η Palo Alto Tiny BASIC των Li-Chen Wang και Roger Rauskolb
 (1976).*

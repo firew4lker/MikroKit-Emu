@@ -1,10 +1,10 @@
-//! End-to-end tests that run the real Microkit monitor ROM.
+//! End-to-end tests that run the real Mikrokit monitor ROM.
 //! They need "Monitor Program.BIN" and ".asm" in "Original Documentation".
 
-use microkit_emu::asm;
-use microkit_emu::loader::{write_ihex, Image};
-use microkit_emu::machine::{Key, Machine};
-use microkit_emu::segments::display_text;
+use mikrokit_emu::asm;
+use mikrokit_emu::loader::{write_ihex, Image};
+use mikrokit_emu::machine::{Key, Machine};
+use mikrokit_emu::segments::display_text;
 use std::path::PathBuf;
 
 fn kit_file(name: &str) -> PathBuf {
@@ -266,7 +266,7 @@ fn outputs_example_drives_all_ports() {
 
 #[test]
 fn builtin_roms() {
-    use microkit_emu::roms;
+    use mikrokit_emu::roms;
     assert!(roms::ORIGINAL == &rom()[..], "roms/monitor-5.12.bin is the kit's EPROM");
     for (name, _, image) in roms::BUILTIN {
         assert_eq!(image.len(), 0x2000, "{name}");
@@ -280,7 +280,7 @@ fn builtin_roms() {
 
 #[test]
 fn io_and_memory_decoding_follow_the_schematic() {
-    use microkit_emu::cpu::Bus;
+    use mikrokit_emu::cpu::Bus;
     let mut m = Machine::new();
     // X3 pins 1-3 on D0-D2 of ports 3EH/3FH, open inputs read 1
     m.board.x3_in = 0b101;

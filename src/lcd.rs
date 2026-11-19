@@ -1,5 +1,5 @@
 //! HD44780-compatible character LCD on a 4-bit bus, wired to the 8155's
-//! port B as in the Microkit LCD add-on:
+//! port B as in the Mikrokit LCD add-on:
 //!
 //! PB2 = RS, PB3 = E, PB4..PB7 = D4..D7, D0..D3 and R/W tied to ground
 //! (so the busy flag can't be read; programs must wait).

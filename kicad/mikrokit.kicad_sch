@@ -5,14 +5,14 @@
 	(uuid "d66176de-f989-5d71-8dd9-bcca02c4ab97")
 	(paper "A4")
 	(title_block
-		(title "Microkit V2.0")
+		(title "Mikrokit V2.0")
 		(date "1985-03-07")
 		(rev "2.0")
 		(company "Micro Design Ltd (original design)")
 		(comment 1 "KiCad redraw of the scanned schematic")
 	)
 	(lib_symbols)
-	(text "Microkit V2.0 8085 trainer (Micro Design Ltd, Athens, 1985).\nRedrawn in KiCad from the three scanned schematic sheets dated 7-3-1985.\nReference designators, jumper numbers and connector pin numbers follow the original.\nSee NOTES.md for what was inferred and what to check on a real board."
+	(text "Mikrokit V2.0 8085 trainer (Micro Design Ltd, Athens, 1985).\nRedrawn in KiCad from the three scanned schematic sheets dated 7-3-1985.\nReference designators, jumper numbers and connector pin numbers follow the original.\nSee NOTES.md for what was inferred and what to check on a real board."
 		(exclude_from_sim no)
 		(at 30 120 0)
 		(effects
@@ -62,7 +62,7 @@
 			)
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97"
 					(page "3")
 				)
@@ -108,7 +108,7 @@
 			)
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97"
 					(page "4")
 				)
@@ -154,7 +154,7 @@
 			)
 		)
 		(instances
-			(project "microkit"
+			(project "mikrokit"
 				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97"
 					(page "2")
 				)

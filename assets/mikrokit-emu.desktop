@@ -1,13 +1,13 @@
 [Desktop Entry]
 Type=Application
-Name=MicroKit-Emu
+Name=MikroKit-Emu
 GenericName=8085 Trainer Emulator
 GenericName[el]=Εξομοιωτής εκπαιδευτικού συστήματος 8085
-Comment=Emulator of the Micro Design Microkit 8085 trainer
-Comment[el]=Εξομοιωτής του εκπαιδευτικού συστήματος Microkit 8085 της Micro Design
-Exec=microkit-emu %f
-Icon=microkit-emu
+Comment=Emulator of the Micro Design Mikrokit 8085 trainer
+Comment[el]=Εξομοιωτής του εκπαιδευτικού συστήματος Mikrokit 8085 της Micro Design
+Exec=mikrokit-emu %f
+Icon=mikrokit-emu
 Terminal=false
 Categories=Education;Electronics;
 Keywords=8085;Intel;trainer;emulator;microprocessor;assembler;monitor;
-StartupWMClass=MicroKit-Emu
+StartupWMClass=MikroKit-Emu

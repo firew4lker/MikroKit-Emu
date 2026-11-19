@@ -1,15 +1,15 @@
-# MicroKit-Emu
+# MikroKit-Emu
 
-**MicroKit-Emu** is an emulator of the Micro Design **Microkit V2.0**, an
+**MikroKit-Emu** is an emulator of the Micro Design **Mikrokit V2.0**, an
 Intel 8085 trainer made in Athens in the 1980s. It runs the kit's original
 monitor ROM (v5.12) unchanged, cycle by cycle at the board's real 3.072 MHz,
 and looks and behaves like the board.
 
-![MicroKit-Emu: a terminal session and the LCD example](docs/images/screenshot.png)
+![MikroKit-Emu: a terminal session and the LCD example](docs/images/screenshot.png)
 
-The real Microkit, after a reset (the same `- 80 85` ready message):
+The real Mikrokit, after a reset (the same `- 80 85` ready message):
 
-<img src="Original%20Documentation/Photo%20of%20the%20Board.jpeg" alt="The real Microkit V2.0 board" width="420">
+<img src="Original%20Documentation/Photo%20of%20the%20Board.jpeg" alt="The real Mikrokit V2.0 board" width="420">
 
 ## Features
 
@@ -32,20 +32,20 @@ The real Microkit, after a reset (the same `- 80 85` ready message):
 
 ## Download
 
-Ready-made builds are on the [Releases page](https://github.com/firew4lker/MicroKit-Emu/releases):
+Ready-made builds are on the [Releases page](https://github.com/firew4lker/MikroKit-Emu/releases):
 
 | File | For |
 |---|---|
-| `microkit-emu-linux-x86_64.tar.gz` | Linux (x86-64, glibc 2.44 or newer) |
-| `microkit-emu-windows-x86_64.zip` | Windows 10 or newer (64-bit) |
-| `microkit-emu-0.1.3-1-x86_64.pkg.tar.zst` | Arch Linux (`sudo pacman -U …`) |
+| `mikrokit-emu-linux-x86_64.tar.gz` | Linux (x86-64, glibc 2.44 or newer) |
+| `mikrokit-emu-windows-x86_64.zip` | Windows 10 or newer (64-bit) |
+| `mikrokit-emu-0.1.3-1-x86_64.pkg.tar.zst` | Arch Linux (`sudo pacman -U …`) |
 
 ## Documentation
 
 - **User manual**: [English](docs/manual-en.md) ([PDF](docs/manual-en.pdf)) ·
   [Ελληνικά](docs/manual-el.md) ([PDF](docs/manual-el.pdf))
 - **Schematic**: the board redrawn in KiCad, in [kicad/](kicad/)
-  ([PDF](kicad/microkit.pdf), [notes](kicad/NOTES.md))
+  ([PDF](kicad/mikrokit.pdf), [notes](kicad/NOTES.md))
 - **Original documentation**: the kit's manuals, schematic, monitor source,
   ROM image and a photo of the board, in [Original Documentation/](Original%20Documentation/)
 
@@ -80,7 +80,7 @@ files. Choose one with **File → Monitor ROM**:
 The choice is remembered, and switching resets the kit.
 
 ```
-microkit-emu [--rom original|basic|PATH] [--terminal | --keypad] [--debug] [program.hex|.asm|.bin]
+mikrokit-emu [--rom original|basic|PATH] [--terminal | --keypad] [--debug] [program.hex|.asm|.bin]
 ```
 
 
@@ -94,15 +94,15 @@ release from GitHub):
 cd packaging/arch && makepkg -si
 ```
 
-The package installs `/usr/bin/microkit-emu`, a menu entry with an icon,
-the manuals in `/usr/share/doc/microkit-emu` and the examples in
-`/usr/share/microkit-emu/examples`.
+The package installs `/usr/bin/mikrokit-emu`, a menu entry with an icon,
+the manuals in `/usr/share/doc/mikrokit-emu` and the examples in
+`/usr/share/mikrokit-emu/examples`.
 
 ### Windows
 
-Ready-made: `microkit-emu-windows-x86_64.zip` from the Releases page (unzip, double-click
-`microkit-emu.exe`; Windows 10 or newer, nothing to install). Settings are
-kept in `%APPDATA%\MicroKit-Emu\data`. Command-line options work from a
+Ready-made: `mikrokit-emu-windows-x86_64.zip` from the Releases page (unzip, double-click
+`mikrokit-emu.exe`; Windows 10 or newer, nothing to install). Settings are
+kept in `%APPDATA%\MikroKit-Emu\data`. Command-line options work from a
 Command Prompt as on Linux.
 
 Graphics: the program draws with Vulkan or Direct3D 12 (Metal on macOS).
@@ -146,7 +146,7 @@ cargo build --release --target x86_64-pc-windows-gnu
   `GO 1000 EX` (keypad) or `W` (terminal) — press *Record* just before the
   last EX / Return. Read back with `GO 1300 EX` or `R`, pressing *Play* the
   same way. Tapes are saved and loaded as WAV files, so you can also play
-  them into a real Microkit, or record a real kit's tape to load here.
+  them into a real Mikrokit, or record a real kit's tape to load here.
 - **I/O ports** (⬌ I/O ports): the 8155's ports A, B and C on connector X2
   shown as LEDs (outputs) or clickable switches (inputs), following the
   8155's command register, plus the X3 inputs (port 3EH) and the timer.
@@ -265,13 +265,13 @@ downloads over DB9-1 and DB9-2, a terminal session, and tape write → WAV
 
 ## License
 
-MicroKit-Emu is free software: you can redistribute it and/or modify it
+MikroKit-Emu is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free
 Software Foundation, either version 3 of the License, or (at your option)
 any later version. See [LICENSE](LICENSE).
 
 This covers the emulator, the documentation and the KiCad redraw written
-for this project. It does not cover the Microkit's original material: the
+for this project. It does not cover the Mikrokit's original material: the
 monitor ROM v5.12 (built into the emulator and in `roms/`), the original
 schematic and the manuals in `Original Documentation/` are Micro Design
 Ltd's work and are included for preservation and reference. Palo Alto Tiny

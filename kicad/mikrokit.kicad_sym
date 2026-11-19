@@ -1738,7 +1738,7 @@
 				)
 			)
 		)
-		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Microkit schematic)"
+		(property "Description" "7-segment LED display, common cathode (pinout as drawn on the Mikrokit schematic)"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
