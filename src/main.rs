@@ -1,6 +1,7 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod app;
+mod i18n;
 mod system_theme;
 
 const USAGE: &str = "\

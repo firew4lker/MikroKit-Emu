@@ -9,6 +9,7 @@ use microkit_emu::asm;
 use microkit_emu::disasm::disasm;
 use microkit_emu::loader::{self, Image, parse_addr};
 use microkit_emu::machine::{CPU_HZ, J17_CLOCKS, Jumpers, Key, Machine, monitor};
+use crate::i18n::{tr, trf, Language};
 use microkit_emu::roms;
 use microkit_emu::segments;
 use microkit_emu::tape::{Tape, TapeState};
@@ -48,6 +49,7 @@ struct Settings {
     show_tape: bool,
     show_ports: bool,
     theme: Theme,
+    language: Language,
 }
 
 /// Which monitor ROM is in the socket.
@@ -107,6 +109,7 @@ impl Default for Settings {
             show_tape: false,
             show_ports: false,
             theme: Theme::System,
+            language: Language::English,
         }
     }
 }
@@ -151,7 +154,7 @@ pub struct App {
     show_help: bool,
     confirm: Option<Confirm>,
     /// The terminal text the user last selected (egui reports it when the
-    /// selection settles); used by the right-click "Copy".
+    /// selection settles); used by the right-click tr("Copy").
     selected_text: std::sync::Arc<std::sync::Mutex<Selection>>,
     /// Desktop light/dark preference (winit doesn't report it on Linux).
     system_theme: crate::system_theme::SystemTheme,
@@ -184,6 +187,7 @@ impl App {
         if opts.debug {
             settings.show_debug = true;
         }
+        crate::i18n::set(settings.language);
         let mut app = App {
             m: Machine::new(),
             term: Terminal::default(),
@@ -240,10 +244,10 @@ impl App {
         match &choice {
             RomChoice::Builtin(name) => {
                 let Some((_, label, image)) = roms::BUILTIN.iter().find(|(n, _, _)| n == name) else {
-                    return self.error("Unknown built-in ROM", name.clone());
+                    return self.error(tr("Unknown built-in ROM"), name.clone());
                 };
                 self.install_rom(image, choice.clone());
-                self.status = format!("Monitor ROM: {label} (built in)");
+                self.status = trf!("Monitor ROM: {} (built in)", tr(label));
             }
             RomChoice::File(p) => {
                 let p = p.clone();
@@ -276,7 +280,7 @@ impl App {
             } else {
                 let data = std::fs::read(path).map_err(|e| e.to_string())?;
                 if data.len() > 0x2000 {
-                    return Err(format!("file is {} bytes; the ROM socket holds 8 KB", data.len()));
+                    return Err(trf!("file is {} bytes; the ROM socket holds 8 KB", data.len()));
                 }
                 Ok(data)
             }
@@ -284,26 +288,26 @@ impl App {
         match result {
             Ok(rom) => {
                 self.install_rom(&rom, RomChoice::File(path.to_path_buf()));
-                self.status = format!("Monitor ROM loaded from {}", file_name(path));
+                self.status = trf!("Monitor ROM loaded from {}", file_name(path));
             }
-            Err(e) => self.error("Couldn't load the ROM", e),
+            Err(e) => self.error(tr("Couldn't load the ROM"), e),
         }
     }
 
     /// File → Monitor ROM: the built-in ROMs, the last external file, and
-    /// "Load from file…". Choosing one puts it in the socket and resets.
+    /// tr("Load from file…"). Choosing one puts it in the socket and resets.
     fn rom_menu(&mut self, ui: &mut egui::Ui) {
         let mut pick = None;
         for (name, label, _) in roms::BUILTIN {
             let this = RomChoice::Builtin(name.into());
-            if ui.radio(self.settings.rom == this, label).clicked() {
+            if ui.radio(self.settings.rom == this, tr(label)).clicked() {
                 pick = Some(this);
             }
         }
         if let Some(f) = self.settings.rom_file.clone() {
             let this = RomChoice::File(f.clone());
             if ui
-                .radio(self.settings.rom == this, format!("File: {}", file_name(&f)))
+                .radio(self.settings.rom == this, trf!("File: {}", file_name(&f)))
                 .on_hover_text(f.display().to_string())
                 .clicked()
             {
@@ -311,12 +315,12 @@ impl App {
             }
         }
         ui.separator();
-        if ui.button("Load from file…").clicked() {
+        if ui.button(tr("Load from file…")).clicked() {
             ui.close();
             if let Some(p) = rfd::FileDialog::new()
-                .set_title("Load monitor ROM")
-                .add_filter("ROM image or source", &["bin", "rom", "hex", "asm", "a85"])
-                .add_filter("All files", &["*"])
+                .set_title(tr("Load monitor ROM"))
+                .add_filter(tr("ROM image or source"), &["bin", "rom", "hex", "asm", "a85"])
+                .add_filter(tr("All files"), &["*"])
                 .pick_file()
             {
                 self.load_rom(&p);
@@ -351,22 +355,21 @@ impl App {
         };
         match img {
             Ok(img) => self.apply_image(path, img),
-            Err(e) => self.error(&format!("Couldn't load {}", file_name(path)), e),
+            Err(e) => self.error(&trf!("Couldn't load {}", file_name(path)), e),
         }
     }
 
     fn apply_image(&mut self, path: &Path, img: Image) {
         if img.is_empty() {
-            return self.error("Nothing to load", format!("{} contains no bytes.", file_name(path)));
+            return self.error(tr("Nothing to load"), trf!("{} contains no bytes.", file_name(path)));
         }
         let rom: Vec<_> = img.bytes.keys().filter(|&&a| a < 0x2000).collect();
         if !rom.is_empty() {
             return self.error(
-                "Program overlaps the ROM",
-                format!(
-                    "Address {:04X} is in the EPROM (0000–1FFF). Load user programs into RAM \
-                     (2000–3FFF), or use File → Monitor ROM → Load from file… to replace the monitor.",
-                    rom[0]
+                tr("Program overlaps the ROM"),
+                trf!(
+                    "Address {} is in the EPROM (0000–1FFF). Load user programs into RAM (2000–3FFF), or use File → Monitor ROM → Load from file… to replace the monitor.",
+                    format!("{:04X}", rom[0])
                 ),
             );
         }
@@ -374,21 +377,21 @@ impl App {
         for (&a, &b) in &img.bytes {
             if !self.m.board.poke(a, b) {
                 return self.error(
-                    "Program doesn't fit",
-                    format!("There's no memory at {a:04X}. RAM is 2000–3FFF (and 4000–40FF in the 8155)."),
+                    tr("Program doesn't fit"),
+                    trf!("There's no memory at {}. RAM is 2000–3FFF (and 4000–40FF in the 8155).", format!("{a:04X}")),
                 );
             }
             if (0x4000..=0x40FF).contains(&a) && warn.is_empty() {
-                warn = " — warning: it writes into the monitor's area 4000–40FF".into();
+                warn = tr(" — warning: it writes into the monitor's area 4000–40FF").into();
             }
         }
         let start = img.start().unwrap();
-        let mut msg = format!("Loaded {} → {}", file_name(path), img.describe());
+        let mut msg = trf!("Loaded {} → {}", file_name(path), img.describe());
         if self.settings.set_pc_after_load && monitor::USER_RAM.contains(&start) {
             let [lo, hi] = start.to_le_bytes();
             self.m.board.poke(monitor::PSAV, lo);
             self.m.board.poke(monitor::PSAV + 1, hi);
-            msg.push_str(&format!(", GO address {start:04X}"));
+            msg.push_str(&trf!(", GO address {}", format!("{start:04X}")));
         }
         msg.push_str(&warn);
         self.status = msg;
@@ -398,9 +401,9 @@ impl App {
 
     fn send_file(&mut self, port: u8) {
         let Some(path) = rfd::FileDialog::new()
-            .set_title(format!("Send file to DB9-{port}"))
-            .add_filter("Intel HEX, 8085 source or BASIC text", &["hex", "ihx", "asm", "a85", "bas", "txt"])
-            .add_filter("All files", &["*"])
+            .set_title(trf!("Send file to DB9-{}", port))
+            .add_filter(tr("Intel HEX, 8085 source or BASIC text"), &["hex", "ihx", "asm", "a85", "bas", "txt"])
+            .add_filter(tr("All files"), &["*"])
             .pick_file()
         else {
             return;
@@ -410,11 +413,11 @@ impl App {
                 asm::assemble(&t).map_err(|e| e.to_string())
             }) {
                 Ok(o) => image_to_hex(&o.image),
-                Err(e) => return self.error("Couldn't assemble", e),
+                Err(e) => return self.error(tr("Couldn't assemble"), e),
             },
             _ => match std::fs::read_to_string(&path) {
                 Ok(t) => t,
-                Err(e) => return self.error("Couldn't read the file", e.to_string()),
+                Err(e) => return self.error(tr("Couldn't read the file"), e.to_string()),
             },
         };
         let typed = matches!(ext_of(&path).as_str(), "bas" | "txt");
@@ -424,7 +427,7 @@ impl App {
             let t = text.replace("\r\n", "\n").replace('\n', "\r");
             let t = if self.settings.force_upper { t.to_ascii_uppercase() } else { t };
             self.send_terminal(t.as_bytes());
-            self.status = format!("Typing {} into the terminal…", file_name(&path));
+            self.status = trf!("Typing {} into the terminal…", file_name(&path));
             return;
         }
         let bytes: Vec<u8> = text.replace("\r\n", "\n").replace('\n', "\r\n").into_bytes();
@@ -432,22 +435,22 @@ impl App {
             self.m.board.uart.receive(&bytes);
         } else {
             if !self.m.board.jumpers.j18_db9_2 {
-                self.status = "Note: J18 is set to tape, so DB9-2 isn't connected to SID.".into();
+                self.status = tr("Note: J18 is set to tape, so DB9-2 isn't connected to SID.").into();
             }
             self.m.board.db9_2.send(&bytes);
         }
-        self.status = format!("Sending {} ({} bytes) to DB9-{port}…", file_name(&path), bytes.len());
+        self.status = trf!("Sending {} ({} bytes) to DB9-{}…", file_name(&path), bytes.len(), port);
     }
 
     fn save_memory(&mut self, start: u16, end: u16) {
         if end < start {
-            return self.error("Wrong range", "The end address is before the start address.".into());
+            return self.error(tr("Wrong range"), tr("The end address is before the start address.").into());
         }
         let data: Vec<u8> = (start..=end).map(|a| self.m.board.peek(a)).collect();
         let Some(path) = rfd::FileDialog::new()
-            .set_title("Save memory")
+            .set_title(tr("Save memory"))
             .add_filter("Intel HEX", &["hex"])
-            .add_filter("Binary", &["bin"])
+            .add_filter(tr("Binary"), &["bin"])
             .set_file_name(format!("mem_{start:04X}_{end:04X}.hex"))
             .save_file()
         else {
@@ -459,8 +462,8 @@ impl App {
             std::fs::write(&path, loader::write_ihex(start, &data))
         };
         match res {
-            Ok(()) => self.status = format!("Saved {start:04X}–{end:04X} to {}", file_name(&path)),
-            Err(e) => self.error("Couldn't save", e.to_string()),
+            Ok(()) => self.status = trf!("Saved {}–{} to {}", format!("{start:04X}"), format!("{end:04X}"), file_name(&path)),
+            Err(e) => self.error(tr("Couldn't save"), e.to_string()),
         }
     }
 
@@ -483,7 +486,7 @@ impl App {
             };
             if hit {
                 self.running = false;
-                self.status = format!("Stopped at breakpoint {:04X}", self.m.cpu.pc);
+                self.status = trf!("Stopped at breakpoint {}", format!("{:04X}", self.m.cpu.pc));
             }
         }
         self.m.periodic();
@@ -517,7 +520,7 @@ impl App {
         self.m.apply_jumpers();
         if terminal_changed {
             self.target = if self.settings.jumpers.j16_terminal { Target::Terminal } else { Target::Keypad };
-            self.status = "J16 changed — press RS (reset) for the monitor to switch.".into();
+            self.status = tr("J16 changed — press RS (reset) for the monitor to switch.").into();
         }
     }
 
@@ -597,49 +600,49 @@ impl App {
 
     fn menu_bar(&mut self, ui: &mut egui::Ui) {
         egui::MenuBar::new().ui(ui, |ui| {
-            ui.menu_button("File", |ui| {
-                if ui.button("Load program…").clicked() {
+            ui.menu_button(tr("File"), |ui| {
+                if ui.button(tr("Load program…")).clicked() {
                     ui.close();
                     if let Some(p) = pick_program() {
                         self.load_program(&p);
                     }
                 }
                 let last = self.settings.last_program.clone();
-                if ui.add_enabled(last.is_some(), egui::Button::new("Reload last program")).clicked() {
+                if ui.add_enabled(last.is_some(), egui::Button::new(tr("Reload last program"))).clicked() {
                     ui.close();
                     if let Some(p) = last {
                         self.load_program(&p);
                     }
                 }
-                if ui.button("Save memory range…").clicked() {
+                if ui.button(tr("Save memory range…")).clicked() {
                     ui.close();
                     self.save_dialog = Some(SaveDialog { start: "2000".into(), end: "20FF".into() });
                 }
                 ui.separator();
-                ui.menu_button("Monitor ROM", |ui| self.rom_menu(ui));
+                ui.menu_button(tr("Monitor ROM"), |ui| self.rom_menu(ui));
                 ui.separator();
-                if ui.button("Quit").clicked() {
+                if ui.button(tr("Quit")).clicked() {
                     ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
                 }
             });
-            ui.menu_button("Machine", |ui| {
-                let label = if self.running { "Pause" } else { "Run" };
+            ui.menu_button(tr("Machine"), |ui| {
+                let label = if self.running { tr("Pause") } else { tr("Run") };
                 if ui.button(label).clicked() {
                     self.running = !self.running;
                     ui.close();
                 }
-                if ui.button("Reset (RS)   F9").clicked() {
+                if ui.button(tr("Reset (RS)   F9")).clicked() {
                     let t = ui.input(|i| i.time);
                     self.press(Key::Reset, t);
                     ui.close();
                 }
-                if ui.button("Vector interrupt (VI)   F10").clicked() {
+                if ui.button(tr("Vector interrupt (VI)   F10")).clicked() {
                     let t = ui.input(|i| i.time);
                     self.press(Key::Vi, t);
                     ui.close();
                 }
                 ui.separator();
-                ui.checkbox(&mut self.settings.turbo, "Turbo speed");
+                ui.checkbox(&mut self.settings.turbo, tr("Turbo speed"));
                 ui.separator();
                 let mut j = self.settings.jumpers.clone();
                 jumper_controls(ui, &mut j);
@@ -647,59 +650,70 @@ impl App {
                     self.set_jumpers(j);
                 }
             });
-            ui.menu_button("Serial", |ui| {
-                if ui.button("Send HEX file to DB9-1 (8251)…").clicked() {
+            ui.menu_button(tr("Serial"), |ui| {
+                if ui.button(tr("Send HEX file to DB9-1 (8251)…")).clicked() {
                     ui.close();
                     self.send_file(1);
                 }
-                if ui.button("Send HEX file to DB9-2 (SID)…").clicked() {
+                if ui.button(tr("Send HEX file to DB9-2 (SID)…")).clicked() {
                     ui.close();
                     self.send_file(2);
                 }
                 ui.separator();
-                ui.checkbox(&mut self.settings.force_upper, "Type in capitals (the monitor needs them)");
-                if ui.button("Clear terminal").clicked() {
+                ui.checkbox(&mut self.settings.force_upper, tr("Type in capitals (the monitor needs them)"));
+                if ui.button(tr("Clear terminal")).clicked() {
                     self.term.clear();
                     ui.close();
                 }
-                if ui.button("Cancel pending input").clicked() {
+                if ui.button(tr("Cancel pending input")).clicked() {
                     self.m.board.uart.clear_rx();
                     self.m.board.db9_2.clear();
                     ui.close();
                 }
             });
-            ui.menu_button("Tape", |ui| {
-                ui.checkbox(&mut self.settings.show_tape, "Show tape recorder");
-                if ui.button("Load WAV…").clicked() {
+            ui.menu_button(tr("Tape"), |ui| {
+                ui.checkbox(&mut self.settings.show_tape, tr("Show tape recorder"));
+                if ui.button(tr("Load WAV…")).clicked() {
                     ui.close();
                     self.pick_wav();
                 }
-                if ui.add_enabled(!self.m.board.tape.is_empty(), egui::Button::new("Save WAV…")).clicked() {
+                if ui.add_enabled(!self.m.board.tape.is_empty(), egui::Button::new(tr("Save WAV…"))).clicked() {
                     ui.close();
                     self.save_wav();
                 }
             });
-            ui.menu_button("Debug", |ui| {
-                ui.checkbox(&mut self.settings.show_ports, "Show I/O ports");
-                ui.checkbox(&mut self.settings.show_debug, "Show debug panel");
-                ui.checkbox(&mut self.settings.set_pc_after_load, "Set GO address after loading a program");
+            ui.menu_button(tr("Debug"), |ui| {
+                ui.checkbox(&mut self.settings.show_ports, tr("Show I/O ports"));
+                ui.checkbox(&mut self.settings.show_debug, tr("Show debug panel"));
+                ui.checkbox(&mut self.settings.set_pc_after_load, tr("Set GO address after loading a program"));
             });
-            ui.menu_button("View", |ui| {
-                ui.label(RichText::new("Theme").weak());
+            ui.menu_button(tr("View"), |ui| {
+                ui.label(RichText::new(tr("Theme")).weak());
                 let before = self.settings.theme;
-                ui.radio_value(&mut self.settings.theme, Theme::System, "Follow the system");
-                ui.radio_value(&mut self.settings.theme, Theme::Dark, "Dark (light text on dark)");
-                ui.radio_value(&mut self.settings.theme, Theme::Light, "Light (dark text on light)");
+                ui.radio_value(&mut self.settings.theme, Theme::System, tr("Follow the system"));
+                ui.radio_value(&mut self.settings.theme, Theme::Dark, tr("Dark (light text on dark)"));
+                ui.radio_value(&mut self.settings.theme, Theme::Light, tr("Light (dark text on light)"));
                 if self.settings.theme != before {
                     ui.ctx().set_theme(self.settings.theme.preference());
                 }
                 ui.separator();
-                ui.checkbox(&mut self.settings.show_tape, "Tape recorder");
-                ui.checkbox(&mut self.settings.show_ports, "I/O ports");
-                ui.checkbox(&mut self.settings.show_debug, "Debug panel");
+                ui.checkbox(&mut self.settings.show_tape, tr("Tape recorder"));
+                ui.checkbox(&mut self.settings.show_ports, tr("I/O ports"));
+                ui.checkbox(&mut self.settings.show_debug, tr("Debug panel"));
             });
-            ui.menu_button("Help", |ui| {
-                if ui.button("Keys and usage").clicked() {
+            ui.menu_button(tr("Language"), |ui| {
+                let before = self.settings.language;
+                // each language is named in itself
+                ui.radio_value(&mut self.settings.language, Language::English, "English");
+                ui.radio_value(&mut self.settings.language, Language::Greek, "Ελληνικά");
+                if self.settings.language != before {
+                    crate::i18n::set(self.settings.language);
+                    ui.close();
+                    self.status = tr("Language: English").into();
+                }
+            });
+            ui.menu_button(tr("Help"), |ui| {
+                if ui.button(tr("Keys and usage")).clicked() {
                     self.show_help = true;
                     ui.close();
                 }
@@ -712,21 +726,21 @@ impl App {
     fn toolbar(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             let time = ui.input(|i| i.time);
-            let (icon, tip) = if self.running { ("⏸ Pause", "Pause the CPU") } else { ("▶ Run", "Resume the CPU") };
+            let (icon, tip) = if self.running { (tr("⏸ Pause"), tr("Pause the CPU")) } else { (tr("▶ Run"), tr("Resume the CPU")) };
             if ui.button(icon).on_hover_text(tip).clicked() {
                 self.running = !self.running;
             }
-            if ui.button("⟲ Reset (RS)").on_hover_text("Same as the RS key (F9)").clicked() {
+            if ui.button(tr("⟲ Reset (RS)")).on_hover_text(tr("Same as the RS key (F9)")).clicked() {
                 self.press(Key::Reset, time);
             }
-            if ui.button("📂 Load program").on_hover_text(".hex, .bin or .asm into RAM").clicked() {
+            if ui.button(tr("📂 Load program")).on_hover_text(tr(".hex, .bin or .asm into RAM")).clicked() {
                 if let Some(p) = pick_program() {
                     self.load_program(&p);
                 }
             }
             let last = self.settings.last_program.clone();
             if ui
-                .add_enabled(last.is_some(), egui::Button::new("↻ Reload"))
+                .add_enabled(last.is_some(), egui::Button::new(tr("↻ Reload")))
                 .on_hover_text(last.as_deref().map(file_name).unwrap_or_default())
                 .clicked()
             {
@@ -735,18 +749,18 @@ impl App {
                 }
             }
             ui.separator();
-            ui.label("Speed");
+            ui.label(tr("Speed"));
             egui::ComboBox::from_id_salt("speed")
-                .selected_text(if self.settings.turbo { "Turbo" } else { "3.072 MHz (real)" })
+                .selected_text(if self.settings.turbo { "Turbo" } else { tr("3.072 MHz (real)") })
                 .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut self.settings.turbo, false, "3.072 MHz (real)");
+                    ui.selectable_value(&mut self.settings.turbo, false, tr("3.072 MHz (real)"));
                     ui.selectable_value(&mut self.settings.turbo, true, "Turbo");
                 });
             ui.label(RichText::new(format!("{:.2} MHz", self.measured_mhz)).weak());
             ui.separator();
-            ui.toggle_value(&mut self.settings.show_tape, "📼 Tape");
-            ui.toggle_value(&mut self.settings.show_ports, "🔌 I/O ports");
-            ui.checkbox(&mut self.settings.show_debug, "Debug");
+            ui.toggle_value(&mut self.settings.show_tape, tr("📼 Tape"));
+            ui.toggle_value(&mut self.settings.show_ports, tr("🔌 I/O ports"));
+            ui.checkbox(&mut self.settings.show_debug, tr("Debug"));
         });
     }
 
@@ -780,9 +794,9 @@ impl App {
                 }
                 ui.horizontal(|ui| {
                     ui.add_space(6.0);
-                    ui.label(RichText::new("address").color(PCB_TEXT).small());
+                    ui.label(RichText::new(tr("address")).color(PCB_TEXT).small());
                     ui.add_space(190.0);
-                    ui.label(RichText::new("data").color(PCB_TEXT).small());
+                    ui.label(RichText::new(tr("data")).color(PCB_TEXT).small());
                 });
                 ui.add_space(6.0);
                 // keypad
@@ -820,7 +834,7 @@ impl App {
                     ui.add_space(kgap);
                 }
                 ui.label(
-                    RichText::new("MICROKIT V2.0 · click here, then type: 0-F, M R G S N . (Enter = EX)")
+                    RichText::new(tr("MICROKIT V2.0 · click here, then type: 0-F, M R G S N . (Enter = EX)"))
                         .color(PCB_TEXT)
                         .small(),
                 );
@@ -835,29 +849,29 @@ impl App {
         let focused = self.target == Target::Terminal;
         ui.horizontal(|ui| {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if ui.button("Clear").clicked() {
+                if ui.button(tr("Clear")).clicked() {
                     self.term.clear();
                 }
                 if ui
-                    .button("Send HEX → DB9-2")
-                    .on_hover_text("Software serial on SID: the default port of GO 1600 and L")
+                    .button(tr("Send HEX → DB9-2"))
+                    .on_hover_text(tr("Software serial on SID: the default port of GO 1600 and L"))
                     .clicked()
                 {
                     self.send_file(2);
                 }
                 if ui
-                    .button("Send HEX → DB9-1")
-                    .on_hover_text("The 8251 port (select it with P → 1, or GO 1800 → 1)")
+                    .button(tr("Send HEX → DB9-1"))
+                    .on_hover_text(tr("The 8251 port (select it with P → 1, or GO 1800 → 1)"))
                     .clicked()
                 {
                     self.send_file(1);
                 }
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
                     let baud = self.m.board.uart.baud();
-                    let mut text = format!("Terminal — DB9-1 · {baud} baud");
+                    let mut text = trf!("Terminal — DB9-1 · {} baud", baud);
                     let pending = self.m.board.uart.rx_pending() + self.m.board.db9_2.pending();
                     if pending > 0 {
-                        text.push_str(&format!(" · sending {pending} bytes"));
+                        text.push_str(&trf!(" · sending {} bytes", pending));
                     } else if !self.settings.jumpers.j16_terminal {
                         text.push_str(" · J16 off: keypad monitor active");
                     }
@@ -922,11 +936,11 @@ impl App {
             Some(TermAction::Copy) => {
                 let t = self.selected_text.lock().map(|s| s.text.clone()).unwrap_or_default();
                 ui.ctx().copy_text(t);
-                self.status = "Selection copied".into();
+                self.status = tr("Selection copied").into();
             }
             Some(TermAction::CopyAll) => {
                 ui.ctx().copy_text(self.term.text());
-                self.status = "Terminal text copied".into();
+                self.status = tr("Terminal text copied").into();
             }
             Some(TermAction::Paste) => self.paste_into_terminal(),
             Some(TermAction::CtrlC) => self.send_terminal(&[0x03]),
@@ -943,33 +957,33 @@ impl App {
                 self.send_terminal(t.as_bytes());
                 self.target = Target::Terminal;
             }
-            Err(e) => self.status = format!("Nothing to paste ({e})"),
+            Err(e) => self.status = trf!("Nothing to paste ({})", e),
         }
     }
 
     fn status_bar(&mut self, ui: &mut egui::Ui) {
         ui.horizontal_wrapped(|ui| {
-            ui.label(RichText::new("Jumpers").weak());
+            ui.label(RichText::new(tr("Jumpers")).weak());
             let mut j = self.settings.jumpers.clone();
-            ui.toggle_value(&mut j.j16_terminal, "J16 terminal mode")
-                .on_hover_text("ON: terminal (CRT) monitor on DB9-1. OFF: keypad monitor. Press RS after changing.");
-            ui.toggle_value(&mut j.j13_trap, "J13 single step")
-                .on_hover_text("8155 timer drives TRAP (needed for SS and T)");
+            ui.toggle_value(&mut j.j16_terminal, tr("J16 terminal mode"))
+                .on_hover_text(tr("ON: terminal (CRT) monitor on DB9-1. OFF: keypad monitor. Press RS after changing."));
+            ui.toggle_value(&mut j.j13_trap, tr("J13 single step"))
+                .on_hover_text(tr("8155 timer drives TRAP (needed for SS and T)"));
             let mut db92 = j.j18_db9_2;
-            let j18_label = if db92 { "J18 SID: DB9-2" } else { "J18 SID: tape" };
+            let j18_label = if db92 { "J18 SID: DB9-2" } else { tr("J18 SID: tape") };
             ui.toggle_value(&mut db92, j18_label)
-                .on_hover_text("Route SID/SOD to the DB9-2 serial port or to the tape connector");
+                .on_hover_text(tr("Route SID/SOD to the DB9-2 serial port or to the tape connector"));
             j.j18_db9_2 = db92;
             egui::ComboBox::from_id_salt("j17")
                 .selected_text(format!("J17 {}", J17_CLOCKS[j.j17.clamp(1, 11) as usize - 1] / 16))
                 .show_ui(ui, |ui| {
                     for pos in 1..=11u8 {
                         let baud = J17_CLOCKS[pos as usize - 1] / 16;
-                        ui.selectable_value(&mut j.j17, pos, format!("pos {pos}: {baud} baud"));
+                        ui.selectable_value(&mut j.j17, pos, trf!("pos {}: {} baud", pos, baud));
                     }
                 })
                 .response
-                .on_hover_text("Baud rate of DB9-1 (8251 in x16 mode)");
+                .on_hover_text(tr("Baud rate of DB9-1 (8251 in x16 mode)"));
             if j != self.settings.jumpers {
                 self.set_jumpers(j);
             }
@@ -977,7 +991,7 @@ impl App {
         ui.separator();
         ui.horizontal(|ui| {
             let c = self.shown_cpu().clone();
-            ui.label(RichText::new(if self.running { "running" } else { "paused" }).small());
+            ui.label(RichText::new(if self.running { tr("running") } else { tr("paused") }).small());
             ui.separator();
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(
@@ -993,7 +1007,7 @@ impl App {
                     .monospace()
                     .small(),
                 )
-                .on_hover_text("CPU registers (updated 4 times a second while running)");
+                .on_hover_text(tr("CPU registers (updated 4 times a second while running)"));
                 ui.separator();
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
                     ui.add(egui::Label::new(RichText::new(&self.status).small()).truncate());
@@ -1041,21 +1055,21 @@ impl App {
             .small(),
         );
         ui.horizontal(|ui| {
-            let label = if self.running { "Pause" } else { "Run" };
+            let label = if self.running { tr("Pause") } else { tr("Run") };
             if ui.button(label).clicked() {
                 self.running = !self.running;
             }
-            if ui.add_enabled(!self.running, egui::Button::new("Step")).clicked() {
+            if ui.add_enabled(!self.running, egui::Button::new(tr("Step"))).clicked() {
                 self.m.step();
             }
-            if ui.add_enabled(!self.running, egui::Button::new("Step ×100")).clicked() {
+            if ui.add_enabled(!self.running, egui::Button::new(tr("Step ×100"))).clicked() {
                 for _ in 0..100 {
                     self.m.step();
                 }
             }
         });
         ui.separator();
-        ui.label(RichText::new("Disassembly").strong());
+        ui.label(RichText::new(tr("Disassembly")).strong());
         let mut pc = c.pc;
         for _ in 0..10 {
             let (text, len) = disasm(|a| self.m.board.peek(a), pc);
@@ -1065,10 +1079,10 @@ impl App {
             pc = pc.wrapping_add(len);
         }
         ui.separator();
-        ui.label(RichText::new("Breakpoints").strong());
+        ui.label(RichText::new(tr("Breakpoints")).strong());
         ui.horizontal(|ui| {
             ui.add(egui::TextEdit::singleline(&mut self.bp_text).desired_width(60.0).hint_text("2000"));
-            if ui.button("Add").clicked() {
+            if ui.button(tr("Add")).clicked() {
                 if let Some(a) = parse_addr(&self.bp_text) {
                     if !self.breakpoints.contains(&a) {
                         self.breakpoints.push(a);
@@ -1090,7 +1104,7 @@ impl App {
             self.breakpoints.remove(i);
         }
         ui.separator();
-        ui.label(RichText::new("Memory").strong());
+        ui.label(RichText::new(tr("Memory")).strong());
         ui.horizontal(|ui| {
             ui.add(egui::TextEdit::singleline(&mut self.mem_addr).desired_width(60.0));
             for (lbl, a) in [("RAM", "2000"), ("8155", "40C0"), ("ROM", "0000")] {
@@ -1112,7 +1126,7 @@ impl App {
             ui.label(RichText::new(format!("{a:04X}  {bytes} {ascii}")).monospace().small());
         }
         ui.separator();
-        ui.label(RichText::new("Monitor's saved user registers").strong());
+        ui.label(RichText::new(tr("Monitor's saved user registers")).strong());
         let pk = |a: u16| self.m.board.peek(a);
         ui.label(
             RichText::new(format!(
@@ -1136,12 +1150,13 @@ impl App {
         let pio = &self.m.board.pio;
         ui.label(
             RichText::new(format!(
-                "8155 CSR={:02X} PA={:02X} PB={:02X} PC={:02X} timer {}",
+                "8155 CSR={:02X} PA={:02X} PB={:02X} PC={:02X} {} {}",
                 pio.csr,
                 pio.out[0],
                 pio.out[1],
                 pio.out[2],
-                if pio.timer_running() { "running" } else { "stopped" }
+                tr("timer"),
+                if pio.timer_running() { tr("running") } else { tr("stopped") }
             ))
             .monospace()
             .small(),
@@ -1152,8 +1167,8 @@ impl App {
 
     fn pick_wav(&mut self) {
         if let Some(p) = rfd::FileDialog::new()
-            .set_title("Load tape (WAV)")
-            .add_filter("WAV audio", &["wav"])
+            .set_title(tr("Load tape (WAV)"))
+            .add_filter(tr("WAV audio"), &["wav"])
             .pick_file()
         {
             if self.m.board.tape.modified {
@@ -1170,9 +1185,9 @@ impl App {
                 t.name = Some(file_name(p));
                 let secs = t.seconds(t.len() as f64);
                 self.m.board.tape = t;
-                self.status = format!("Tape loaded: {} ({secs:.1} s)", file_name(p));
+                self.status = trf!("Tape loaded: {} ({} s)", file_name(p), format!("{secs:.1}"));
             }
-            Err(e) => self.error("Couldn't load the tape", e),
+            Err(e) => self.error(tr("Couldn't load the tape"), e),
         }
     }
 
@@ -1180,8 +1195,8 @@ impl App {
         self.m.tape_stop();
         let name = self.m.board.tape.name.clone().unwrap_or_else(|| "tape.wav".into());
         if let Some(p) = rfd::FileDialog::new()
-            .set_title("Save tape as WAV")
-            .add_filter("WAV audio", &["wav"])
+            .set_title(tr("Save tape as WAV"))
+            .add_filter(tr("WAV audio"), &["wav"])
             .set_file_name(name)
             .save_file()
         {
@@ -1189,9 +1204,9 @@ impl App {
                 Ok(()) => {
                     self.m.board.tape.modified = false;
                     self.m.board.tape.name = Some(file_name(&p));
-                    self.status = format!("Tape saved to {}", file_name(&p));
+                    self.status = trf!("Tape saved to {}", file_name(&p));
                 }
-                Err(e) => self.error("Couldn't save the tape", e.to_string()),
+                Err(e) => self.error(tr("Couldn't save the tape"), e.to_string()),
             }
         }
     }
@@ -1200,8 +1215,8 @@ impl App {
         if self.m.board.jumpers.j18_db9_2 {
             ui.horizontal(|ui| {
                 let warn = ui.visuals().warn_fg_color;
-                ui.label(RichText::new("J18 routes SID/SOD to DB9-2, so the recorder isn't connected.").color(warn));
-                if ui.button("Set J18 to tape").clicked() {
+                ui.label(RichText::new(tr("J18 routes SID/SOD to DB9-2, so the recorder isn't connected.")).color(warn));
+                if ui.button(tr("Set J18 to tape")).clicked() {
                     let mut j = self.settings.jumpers.clone();
                     j.j18_db9_2 = false;
                     self.set_jumpers(j);
@@ -1215,8 +1230,8 @@ impl App {
         let pos_s = tape.seconds(pos);
         let state = tape.state;
         ui.horizontal(|ui| {
-            let name = tape.name.clone().unwrap_or_else(|| "(blank tape)".into());
-            let star = if tape.modified { " • unsaved" } else { "" };
+            let name = tape.name.clone().unwrap_or_else(|| tr("(blank tape)").into());
+            let star = if tape.modified { tr(" • unsaved") } else { "" };
             ui.label(RichText::new(format!("{name}{star}")).strong());
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(RichText::new(format!("{} / {}", mmss(pos_s), mmss(len_s))).monospace());
@@ -1241,7 +1256,7 @@ impl App {
             let hx = rect.left() + (pos / n as f64) as f32 * rect.width();
             p.line_segment([pos2(hx, rect.top()), pos2(hx, rect.bottom())], Stroke::new(2.0, LED_ON));
         } else {
-            p.text(rect.center(), Align2::CENTER_CENTER, "empty — press Record to record", FontId::proportional(12.0), Color32::GRAY);
+            p.text(rect.center(), Align2::CENTER_CENTER, tr("empty — press Record to record"), FontId::proportional(12.0), Color32::GRAY);
         }
         if resp.clicked() && state == TapeState::Stopped && n > 0 {
             if let Some(pt) = resp.interact_pointer_pos() {
@@ -1252,22 +1267,22 @@ impl App {
         ui.horizontal(|ui| {
             let playing = matches!(state, TapeState::Playing { .. });
             let recording = matches!(state, TapeState::Recording { .. });
-            if ui.button("⏮").on_hover_text("Rewind").clicked() {
+            if ui.button("⏮").on_hover_text(tr("Rewind")).clicked() {
                 let now = self.m.now();
                 self.m.board.tape.rewind(now);
             }
-            if ui.selectable_label(playing, "▶ Play").clicked() && !playing {
+            if ui.selectable_label(playing, tr("▶ Play")).clicked() && !playing {
                 self.m.tape_play();
             }
             if ui
-                .selectable_label(recording, RichText::new("⏺ Record").color(if recording { LED_ON } else { Color32::PLACEHOLDER }))
-                .on_hover_text("Records from the current position, over anything already there")
+                .selectable_label(recording, RichText::new(tr("⏺ Record")).color(if recording { LED_ON } else { Color32::PLACEHOLDER }))
+                .on_hover_text(tr("Records from the current position, over anything already there"))
                 .clicked()
                 && !recording
             {
                 self.m.tape_record();
             }
-            if ui.button("⏹ Stop").clicked() {
+            if ui.button(tr("⏹ Stop")).clicked() {
                 self.m.tape_stop();
             }
             ui.separator();
@@ -1278,13 +1293,13 @@ impl App {
             led(ui, tape.sid(now), "EAR");
         });
         ui.horizontal(|ui| {
-            if ui.button("Load WAV…").clicked() {
+            if ui.button(tr("Load WAV…")).clicked() {
                 self.pick_wav();
             }
-            if ui.add_enabled(!self.m.board.tape.is_empty(), egui::Button::new("Save WAV…")).clicked() {
+            if ui.add_enabled(!self.m.board.tape.is_empty(), egui::Button::new(tr("Save WAV…"))).clicked() {
                 self.save_wav();
             }
-            if ui.add_enabled(!self.m.board.tape.is_empty(), egui::Button::new("Blank tape")).clicked() {
+            if ui.add_enabled(!self.m.board.tape.is_empty(), egui::Button::new(tr("Blank tape"))).clicked() {
                 if self.m.board.tape.modified {
                     self.confirm = Some(Confirm::BlankTape);
                 } else {
@@ -1294,8 +1309,7 @@ impl App {
         });
         ui.label(
             RichText::new(
-                "Write: GO 1000 EX (keypad) or W (terminal); press Record, then the last EX / Return.\n\
-                 Read: rewind, GO 1300 EX or R; press Play, then the last EX / Return.",
+                tr("Write: GO 1000 EX (keypad) or W (terminal); press Record, then the last EX / Return.\nRead: rewind, GO 1300 EX or R; press Play, then the last EX / Return."),
             )
             .weak()
             .small(),
@@ -1307,12 +1321,12 @@ impl App {
     fn ports_ui(&mut self, ui: &mut egui::Ui) {
         let csr = self.m.board.pio.csr;
         let pc_mode = match (csr >> 2) & 3 {
-            0 => "input (ALT1)",
-            3 => "output (ALT2)",
-            1 => "handshake for A (ALT3)",
-            _ => "handshake for A and B (ALT4)",
+            0 => tr("input (ALT1)"),
+            3 => tr("output (ALT2)"),
+            1 => tr("handshake for A (ALT3)"),
+            _ => tr("handshake for A and B (ALT4)"),
         };
-        ui.label(RichText::new("8155 (IC12) — connector X2").strong());
+        ui.label(RichText::new(tr("8155 (IC12) — connector X2")).strong());
         ui.label(RichText::new(format!("CSR = {csr:02X}H · PC: {pc_mode}")).small().weak());
         egui::Grid::new("ports").num_columns(3).spacing([8.0, 6.0]).show(ui, |ui| {
             for (idx, name, bits) in [(0usize, "PA (41H)", 8u8), (1, "PB (42H)", 8), (2, "PC (43H)", 6)] {
@@ -1335,14 +1349,14 @@ impl App {
                 });
                 let mask = if bits == 8 { 0xFF } else { 0x3F };
                 ui.label(
-                    RichText::new(format!("{:02X}H {}", value & mask, if output { "out" } else { "in" })).monospace(),
+                    RichText::new(format!("{:02X}H {}", value & mask, if output { tr("out") } else { tr("in") })).monospace(),
                 );
                 ui.end_row();
             }
         });
-        ui.label(RichText::new("Outputs are LEDs; inputs are switches you can click.").weak().small());
+        ui.label(RichText::new(tr("Outputs are LEDs; inputs are switches you can click.")).weak().small());
         ui.separator();
-        ui.label(RichText::new("Input port 0FH (IC21) — connector X3").strong());
+        ui.label(RichText::new(tr("Input port 0FH (IC21) — connector X3")).strong());
         ui.horizontal(|ui| {
             for bit in [2u8, 1] {
                 let on = self.m.board.x3_in & (1 << bit) != 0;
@@ -1352,14 +1366,14 @@ impl App {
             }
             ui.add_space(8.0);
             led(ui, !self.settings.jumpers.j16_terminal, "D0");
-            ui.label(RichText::new("D0 = J16 (0 = terminal monitor)").weak().small());
+            ui.label(RichText::new(tr("D0 = J16 (0 = terminal monitor)")).weak().small());
         });
         ui.separator();
         let (count, mode) = self.m.board.pio.timer_setting();
-        let mode_s = ["single square wave", "square wave", "single pulse", "continuous pulses"][mode as usize & 3];
-        let run = if self.m.board.pio.timer_running() { "running" } else { "stopped" };
+        let mode_s = [tr("single square wave"), tr("square wave"), tr("single pulse"), tr("continuous pulses")][mode as usize & 3];
+        let run = if self.m.board.pio.timer_running() { tr("running") } else { tr("stopped") };
         ui.label(
-            RichText::new(format!("Timer: count {count} ({count:04X}H), {mode_s}, {run} → TRAP via J13"))
+            RichText::new(trf!("Timer: count {} ({}H), {}, {} → TRAP via J13", count, format!("{count:04X}"), mode_s, run))
                 .small(),
         );
     }
@@ -1367,7 +1381,7 @@ impl App {
     fn tool_windows(&mut self, ctx: &egui::Context) {
         let mut show = self.settings.show_tape;
         if show {
-            egui::Window::new("📼 Tape recorder")
+            egui::Window::new(tr("📼 Tape recorder"))
                 .open(&mut show)
                 .resizable(false)
                 .default_width(380.0)
@@ -1377,7 +1391,7 @@ impl App {
         }
         let mut show = self.settings.show_ports;
         if show {
-            egui::Window::new("🔌 I/O ports")
+            egui::Window::new(tr("🔌 I/O ports"))
                 .open(&mut show)
                 .resizable(false)
                 .default_pos(pos2(420.0, 360.0))
@@ -1386,17 +1400,17 @@ impl App {
         }
         if let Some(c) = &self.confirm {
             let what = match c {
-                Confirm::BlankTape => "Erase the tape?",
-                Confirm::LoadWav(_) => "Replace the tape?",
+                Confirm::BlankTape => tr("Erase the tape?"),
+                Confirm::LoadWav(_) => tr("Replace the tape?"),
             };
             let mut answer = None;
             egui::Window::new(what).collapsible(false).resizable(false).show(ctx, |ui| {
-                ui.label("The current tape has a recording you haven't saved.");
+                ui.label(tr("The current tape has a recording you haven't saved."));
                 ui.horizontal(|ui| {
-                    if ui.button("Discard recording").clicked() {
+                    if ui.button(tr("Discard recording")).clicked() {
                         answer = Some(true);
                     }
-                    if ui.button("Cancel").clicked() {
+                    if ui.button(tr("Cancel")).clicked() {
                         answer = Some(false);
                     }
                 });
@@ -1428,14 +1442,14 @@ impl App {
         }
         if let Some(mut d) = self.bin_dialog.take() {
             let mut keep = true;
-            egui::Window::new("Load binary").collapsible(false).resizable(false).show(ctx, |ui| {
-                ui.label(format!("{} ({} bytes)", file_name(&d.path), d.data.len()));
+            egui::Window::new(tr("Load binary")).collapsible(false).resizable(false).show(ctx, |ui| {
+                ui.label(trf!("{} ({} bytes)", file_name(&d.path), d.data.len()));
                 ui.horizontal(|ui| {
-                    ui.label("Load address (hex):");
+                    ui.label(tr("Load address (hex):"));
                     ui.add(egui::TextEdit::singleline(&mut d.addr).desired_width(70.0));
                 });
                 ui.horizontal(|ui| {
-                    if ui.button("Load").clicked() {
+                    if ui.button(tr("Load")).clicked() {
                         match parse_addr(&d.addr) {
                             Some(a) => {
                                 self.settings.last_bin_addr = d.addr.clone();
@@ -1444,10 +1458,10 @@ impl App {
                                 self.apply_image(&path, img);
                                 keep = false;
                             }
-                            None => self.status = "Enter a hex address like 2000".into(),
+                            None => self.status = tr("Enter a hex address like 2000").into(),
                         }
                     }
-                    if ui.button("Cancel").clicked() {
+                    if ui.button(tr("Cancel")).clicked() {
                         keep = false;
                     }
                 });
@@ -1458,24 +1472,24 @@ impl App {
         }
         if let Some(mut d) = self.save_dialog.take() {
             let mut keep = true;
-            egui::Window::new("Save memory range").collapsible(false).resizable(false).show(ctx, |ui| {
+            egui::Window::new(tr("Save memory range")).collapsible(false).resizable(false).show(ctx, |ui| {
                 ui.horizontal(|ui| {
-                    ui.label("From");
+                    ui.label(tr("From"));
                     ui.add(egui::TextEdit::singleline(&mut d.start).desired_width(60.0));
-                    ui.label("to");
+                    ui.label(tr("to"));
                     ui.add(egui::TextEdit::singleline(&mut d.end).desired_width(60.0));
                 });
                 ui.horizontal(|ui| {
-                    if ui.button("Save…").clicked() {
+                    if ui.button(tr("Save…")).clicked() {
                         match (parse_addr(&d.start), parse_addr(&d.end)) {
                             (Some(s), Some(e)) => {
                                 keep = false;
                                 self.save_memory(s, e);
                             }
-                            _ => self.status = "Enter hex addresses like 2000 and 20FF".into(),
+                            _ => self.status = tr("Enter hex addresses like 2000 and 20FF").into(),
                         }
                     }
-                    if ui.button("Cancel").clicked() {
+                    if ui.button(tr("Cancel")).clicked() {
                         keep = false;
                     }
                 });
@@ -1485,8 +1499,8 @@ impl App {
             }
         }
         if self.show_help {
-            egui::Window::new("MicroKit-Emu — keys and usage").open(&mut self.show_help).show(ctx, |ui| {
-                ui.label(HELP_TEXT);
+            egui::Window::new(tr("MicroKit-Emu — keys and usage")).open(&mut self.show_help).show(ctx, |ui| {
+                ui.label(if self.settings.language == Language::Greek { HELP_TEXT_EL } else { HELP_TEXT });
             });
         }
     }
@@ -1494,7 +1508,7 @@ impl App {
 
 impl eframe::App for App {
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // "Follow the system": egui uses the fallback theme when the backend
+        // tr("Follow the system"): egui uses the fallback theme when the backend
         // can't tell, so feed it what the desktop told us (light if unsure).
         let want = ctx.input(|i| i.raw.system_theme).or(self.system_theme.get()).unwrap_or(egui::Theme::Light);
         if ctx.options(|o| o.fallback_theme) != want {
@@ -1582,6 +1596,7 @@ Terminal (set J16 on, then RS): click the terminal and type.
   Send Ctrl+C, Clear terminal.
 
 Theme: View → Follow the system / Dark / Light.
+Language: Language → English / Ελληνικά.
 
 Monitor ROM: File → Monitor ROM chooses the original monitor
   5.12 (default), the monitor + Tiny BASIC, or a file of your own.
@@ -1601,6 +1616,57 @@ Loading programs:
 
   Or use the kit's own download: GO 1600 EX (keypad) or L (terminal),
   then Serial → Send HEX file to DB9-2 (or DB9-1 after P → 1).";
+
+const HELP_TEXT_EL: &str = "\
+Πληκτρολόγιο (κάντε πρώτα κλικ στην πλακέτα):
+  0-9, A-F   δεκαεξαδικά ψηφία
+  M          M  - εξέταση/αλλαγή μνήμης
+  R          R  - εξέταση/αλλαγή καταχωρητών
+  G          GO - εκτέλεση προγράμματος
+  S          SS - βηματική εκτέλεση
+  N, Space   N  - επόμενο
+  . , Enter  EX - εκτέλεση / τέλος
+  F9         RS - επαναφορά (reset)
+  F10        VI - διακοπή (RST 7.5 → 40DFH)
+
+Προγράμματα της ROM (GO διεύθυνση EX):
+  1000 εγγραφή κασέτας    1300 ανάγνωση κασέτας
+  1600 λήψη HEX           1800 επιλογή θύρας λήψης
+
+Τερματικό (J16 on και μετά RS): κάντε κλικ στο τερματικό και
+  πληκτρολογήστε. Οι εντολές γράφονται με κεφαλαία· η επιλογή
+  «Πληκτρολόγηση με κεφαλαία» το κάνει για εσάς.
+  Enter = CR, Esc = ESC, Ctrl+C = ^C, Ctrl+S/Q = XOFF/XON.
+  Σύρετε πάνω στο κείμενο για να το επιλέξετε· τότε το Ctrl+C
+  αντιγράφει αντί να στείλει ^C. Δεξί κλικ: Αντιγραφή, Αντιγραφή
+  όλου του κειμένου, Επικόλληση (Ctrl+V), Αποστολή Ctrl+C,
+  Καθαρισμός τερματικού.
+
+Θέμα: Προβολή → Όπως το σύστημα / Σκούρο / Ανοιχτό.
+Γλώσσα: Γλώσσα → English / Ελληνικά.
+
+ROM του monitor: Αρχείο → ROM του monitor επιλέγει το αρχικό
+  monitor 5.12 (προεπιλογή), το monitor + Tiny BASIC ή δικό σας
+  αρχείο.
+
+Tiny BASIC (ROM «Monitor 5.12 + Tiny BASIC», J16 on):
+  πατήστε RS και γράψτε B στο τερματικό.
+  Το BYE επιστρέφει στο monitor· με B ξανά το πρόγραμμα μένει.
+  Αποστολή HEX → DB9-1 με αρχείο .bas πληκτρολογεί το πρόγραμμα.
+
+Φόρτωση προγραμμάτων:
+  Αρχείο → Φόρτωση προγράμματος, η γραμμή εργαλείων ή σύρετε ένα
+  αρχείο στο παράθυρο.
+  .hex  Intel HEX (οι διευθύνσεις από το αρχείο)
+  .asm  πηγαίος κώδικας 8085, με τον ενσωματωμένο assembler
+  .bin  σκέτα byte, εσείς διαλέγετε τη διεύθυνση φόρτωσης
+  Η διεύθυνση GO γίνεται η αρχή του προγράμματος, οπότε GO EX το
+  εκτελεί. Τελειώστε τα προγράμματα με RST 1 (CF) για επιστροφή
+  στο monitor.
+
+  Ή με τη λήψη του ίδιου του κιτ: GO 1600 EX (πληκτρολόγιο) ή L
+  (τερματικό) και μετά Σειριακή → Αποστολή αρχείου HEX στη DB9-2
+  (ή στη DB9-1 μετά από P → 1).";
 
 /// Remembers the last settled text selection (egui sends it to the
 /// backend at the end of each pass, after our UI code has run).
@@ -1688,24 +1754,24 @@ fn has_text_selection(ctx: &egui::Context) -> bool {
 }
 
 fn term_menu(ui: &mut egui::Ui, selecting: bool, action: &mut Option<TermAction>) {
-    if ui.add_enabled(selecting, egui::Button::new("Copy").shortcut_text("Ctrl+C")).clicked() {
+    if ui.add_enabled(selecting, egui::Button::new(tr("Copy")).shortcut_text("Ctrl+C")).clicked() {
         *action = Some(TermAction::Copy);
         ui.close();
     }
-    if ui.button("Copy all text").clicked() {
+    if ui.button(tr("Copy all text")).clicked() {
         *action = Some(TermAction::CopyAll);
         ui.close();
     }
-    if ui.add(egui::Button::new("Paste").shortcut_text("Ctrl+V")).clicked() {
+    if ui.add(egui::Button::new(tr("Paste")).shortcut_text("Ctrl+V")).clicked() {
         *action = Some(TermAction::Paste);
         ui.close();
     }
     ui.separator();
-    if ui.button("Send Ctrl+C").clicked() {
+    if ui.button(tr("Send Ctrl+C")).clicked() {
         *action = Some(TermAction::CtrlC);
         ui.close();
     }
-    if ui.button("Clear terminal").clicked() {
+    if ui.button(tr("Clear terminal")).clicked() {
         *action = Some(TermAction::Clear);
         ui.close();
     }
@@ -1742,28 +1808,28 @@ fn bit_switch(ui: &mut egui::Ui, on: bool, caption: &str) -> bool {
     let knob = if on { Rect::from_min_size(r.min, vec2(12.0, 8.0)) } else { Rect::from_min_size(pos2(r.min.x, r.center().y), vec2(12.0, 8.0)) };
     p.rect_filled(knob.shrink(1.5), 2.0, Color32::from_gray(230));
     p.text(pos2(rect.center().x, rect.bottom() - 6.0), Align2::CENTER_CENTER, caption, FontId::proportional(10.0), ui.visuals().weak_text_color());
-    resp.on_hover_text(if on { "1 — click to set 0" } else { "0 — click to set 1" }).clicked()
+    resp.on_hover_text(if on { tr("1 — click to set 0") } else { tr("0 — click to set 1") }).clicked()
 }
 
 fn key_hint(k: Key) -> &'static str {
     match k {
-        Key::Reset => "RS: reset (F9)",
-        Key::Vi => "VI: vector interrupt, RST 7.5 (F10)",
-        Key::Step => "SS: single step (S)",
-        Key::Go => "GO: execute program (G)",
-        Key::Mem => "M: examine/modify memory (M); inside M it steps back",
-        Key::Reg => "R: examine/modify registers (R)",
-        Key::Next => "N: next (N or Space)",
-        Key::Ex => "EX: execute / end (. or Enter)",
-        Key::Hex(_) => "hex digit",
+        Key::Reset => tr("RS: reset (F9)"),
+        Key::Vi => tr("VI: vector interrupt, RST 7.5 (F10)"),
+        Key::Step => tr("SS: single step (S)"),
+        Key::Go => tr("GO: execute program (G)"),
+        Key::Mem => tr("M: examine/modify memory (M); inside M it steps back"),
+        Key::Reg => tr("R: examine/modify registers (R)"),
+        Key::Next => tr("N: next (N or Space)"),
+        Key::Ex => tr("EX: execute / end (. or Enter)"),
+        Key::Hex(_) => tr("hex digit"),
     }
 }
 
 fn jumper_controls(ui: &mut egui::Ui, j: &mut Jumpers) {
-    ui.checkbox(&mut j.j16_terminal, "J16 terminal monitor (press RS after)");
-    ui.checkbox(&mut j.j13_trap, "J13 timer → TRAP (single step)");
-    ui.checkbox(&mut j.j18_db9_2, "J18 SID/SOD on DB9-2 (off = tape)");
-    ui.checkbox(&mut j.j14_8155_ram, "J14 8155 RAM enabled");
+    ui.checkbox(&mut j.j16_terminal, tr("J16 terminal monitor (press RS after)"));
+    ui.checkbox(&mut j.j13_trap, tr("J13 timer → TRAP (single step)"));
+    ui.checkbox(&mut j.j18_db9_2, tr("J18 SID/SOD on DB9-2 (off = tape)"));
+    ui.checkbox(&mut j.j14_8155_ram, tr("J14 8155 RAM enabled"));
 }
 
 fn flag_string(f: u8) -> String {
@@ -1817,9 +1883,9 @@ fn file_name(p: &Path) -> String {
 
 fn pick_program() -> Option<PathBuf> {
     rfd::FileDialog::new()
-        .set_title("Load program into RAM")
-        .add_filter("Programs", &["hex", "ihx", "bin", "asm", "a85"])
-        .add_filter("All files", &["*"])
+        .set_title(tr("Load program into RAM"))
+        .add_filter(tr("Programs"), &["hex", "ihx", "bin", "asm", "a85"])
+        .add_filter(tr("All files"), &["*"])
         .pick_file()
 }
 

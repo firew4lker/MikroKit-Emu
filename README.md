@@ -68,6 +68,10 @@ microkit-emu [--rom original|basic|PATH] [--terminal | --keypad] [--debug] [prog
   (`org.freedesktop.appearance color-scheme`), because the windowing
   library doesn't report it there; switching the desktop theme while the
   emulator runs is picked up too.
+- **Language**: *Language → English / Ελληνικά*. English is the
+  default; the choice is remembered. Menus, buttons, windows, messages
+  and the help are translated. What the kit itself prints (the monitor,
+  BASIC) stays as the ROM has it.
 - **Debug panel**: registers, disassembly, breakpoints, memory view, the
   monitor's saved user registers, 8155 state. Pause and step the CPU.
 - **File → Save memory range** writes RAM out as `.hex` or `.bin`.
