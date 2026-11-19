@@ -1,6 +1,6 @@
 # Maintainer: firew4lker
 pkgname=microkit-emu
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc="Emulator of the Micro Design Microkit 8085 trainer (keypad, 7-segment display, terminal, tape, LCD)"
 arch=('x86_64')
@@ -20,7 +20,7 @@ optdepends=(
 )
 options=('!lto')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('b0c22a3facab2961e10281b03075667171d405220a2542fc6a69b452e4f0cb5c')
+sha256sums=('b1d888afff461574192b41315ddde8533c1f06d08bd695f01fa09702ad0add83')
 
 prepare() {
   cd "MicroKit-Emu-$pkgver"
