@@ -16547,25 +16547,25 @@
 			(uuid "6ca7fade-3128-579a-b8f3-a11564a8a907")
 		)
 		(pin "8"
-			(uuid "e3edaeb7-90df-42c7-8634-e135eb216526")
+			(uuid "807e042d-aaee-518a-873d-27b99c6fe27a")
 		)
 		(pin "9"
-			(uuid "3b858a51-5870-48f8-95e7-56de2464a9a8")
+			(uuid "13838a30-431d-5366-a364-17a316e50bc6")
 		)
 		(pin "10"
-			(uuid "af5dd4e6-8df8-45b6-8121-319f2af6b526")
+			(uuid "7642a7ab-77a2-5af4-b72a-96e9f4515c13")
 		)
 		(pin "12"
-			(uuid "7191fef8-f539-43c8-9ad1-0cbedb59ccea")
+			(uuid "226bbcfb-dd50-505d-be7f-5b68baa55e89")
 		)
 		(pin "13"
-			(uuid "ff68ff8b-3ee1-46d0-a6c1-3d51ccc97cfa")
+			(uuid "80b8358d-ad6d-5976-8537-9d3225ac3012")
 		)
 		(pin "7"
-			(uuid "6abccc50-720b-49f2-b7f0-4039bb445308")
+			(uuid "0c3ab940-6f85-5380-91fa-260a86cda7a7")
 		)
 		(pin "14"
-			(uuid "6b02c1bf-2d2e-4650-85f2-a4963e1ff48f")
+			(uuid "7db59509-44a6-50f6-9b54-141d71cdb1f9")
 		)
 		(instances
 			(project "microkit"

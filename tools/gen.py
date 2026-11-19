@@ -329,7 +329,14 @@ class Sheet:
             props.append([S('property'), pname, val,
                           [S('at'), round(ox + float(at[1]), 4), round(oy - float(at[2]), 4), float(at[3]) if len(at) > 3 else 0],
                           eff])
-        pins = [[S('pin'), pn['num'], [S('uuid'), uid(*key, 'pin', pn['num'])]] for pn in pl.pins]
+        # every pin of every unit, so kicad-cli doesn't add random UUIDs for the other units
+        nums = []
+        for sub in find(sym, 'symbol'):
+            for pp in find(sub, 'pin'):
+                n = find1(pp, 'number')[1]
+                if n not in nums:
+                    nums.append(n)
+        pins = [[S('pin'), n, [S('uuid'), uid(*key, 'pin', n)]] for n in nums]
         self.items.append([S('symbol'), [S('lib_id'), p.lib], [S('at'), ox, oy, 0], [S('unit'), p.unit],
                            [S('exclude_from_sim'), S('no')], [S('in_bom'), S('no') if p.ref.startswith('#') else S('yes')],
                            [S('on_board'), S('no') if p.ref.startswith('#') else S('yes')], [S('dnp'), S('no')],
