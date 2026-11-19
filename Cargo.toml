@@ -3,6 +3,9 @@ name = "microkit-emu"
 version = "0.1.0"
 edition = "2024"
 description = "MicroKit-Emu: an emulator of the Micro Design Microkit 8085 trainer"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/firew4lker/MicroKit-Emu"
+readme = "README.md"
 
 [dependencies]
 arboard = { version = "3.7", default-features = false }

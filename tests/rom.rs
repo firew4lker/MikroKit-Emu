@@ -1,5 +1,5 @@
 //! End-to-end tests that run the real Microkit monitor ROM.
-//! They need "../Monitor Program.BIN" and ".asm" next to the crate.
+//! They need "Monitor Program.BIN" and ".asm" in "Original Documentation".
 
 use microkit_emu::asm;
 use microkit_emu::loader::{write_ihex, Image};
@@ -8,7 +8,7 @@ use microkit_emu::segments::display_text;
 use std::path::PathBuf;
 
 fn kit_file(name: &str) -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join(name)
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("Original Documentation").join(name)
 }
 
 fn rom() -> Vec<u8> {

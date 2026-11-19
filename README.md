@@ -1,16 +1,62 @@
 # MicroKit-Emu
 
-**MicroKit-Emu** is a cross-platform emulator of the Micro Design **Microkit** 8085 trainer
-(Athens, 1985). It runs the original monitor ROM v5.12 unchanged and behaves
-like the board: 6-digit 7-segment display, 24-key keypad, the DB9-1 serial
-terminal, single step, the VI interrupt key, and HEX downloads over either
-serial port.
+**MicroKit-Emu** is an emulator of the Micro Design **Microkit V2.0**, an
+Intel 8085 trainer made in Athens in the 1980s. It runs the kit's original
+monitor ROM (v5.12) unchanged, cycle by cycle at the board's real 3.072 MHz,
+and looks and behaves like the board.
 
-Written in Rust with [egui](https://github.com/emilk/egui) / eframe, so it
-builds on Linux, Windows and macOS.
+![MicroKit-Emu: a terminal session and the LCD example](docs/images/screenshot.png)
 
-**Manual:** [English](docs/manual-en.md) ([PDF](docs/manual-en.pdf)) ·
-[Ελληνικά](docs/manual-el.md) ([PDF](docs/manual-el.pdf))
+## Features
+
+- **The board**: 6-digit 7-segment display, 24-key keypad (click it or use
+  your keyboard), RS and VI keys, and the jumpers.
+- **Both monitors**: the keypad monitor and the terminal (CRT) monitor on
+  serial port DB9-1, with single step and trace.
+- **Built-in ROMs**: the original monitor 5.12, or the monitor plus
+  **Palo Alto Tiny BASIC**; or load your own ROM.
+- **Loading programs**: Intel HEX, raw binary or 8085 assembly source,
+  assembled by the built-in assembler (also usable from the command line);
+  or the kit's own serial download.
+- **Tape recorder**: save and load programs as WAV files, compatible with
+  a real kit's cassette interface.
+- **I/O ports**: the 8155's ports as LEDs and switches, plus the X3 inputs.
+- **HD44780 LCD**: a 16x2 or 20x4 character LCD on port B in 4-bit mode.
+- **Debug panel**: registers, disassembly, breakpoints, memory view.
+- **English and Greek** interface, light and dark themes.
+- Linux, Windows (and macOS from source).
+
+## Download
+
+Ready-made builds are on the [Releases page](https://github.com/firew4lker/MicroKit-Emu/releases):
+
+| File | For |
+|---|---|
+| `microkit-emu-linux-x86_64.tar.gz` | Linux (x86-64, glibc 2.44 or newer) |
+| `microkit-emu-windows-x86_64.zip` | Windows 10 or newer (64-bit) |
+| `microkit-emu-0.1.0-1-x86_64.pkg.tar.zst` | Arch Linux (`sudo pacman -U …`) |
+
+## Documentation
+
+- **User manual**: [English](docs/manual-en.md) ([PDF](docs/manual-en.pdf)) ·
+  [Ελληνικά](docs/manual-el.md) ([PDF](docs/manual-el.pdf))
+- **Schematic**: the board redrawn in KiCad, in [kicad/](kicad/)
+  ([PDF](kicad/microkit.pdf), [notes](kicad/NOTES.md))
+- **Original documentation**: the kit's manuals, schematic, monitor source
+  and ROM image, in [Original Documentation/](Original%20Documentation/)
+
+## What's in this repository
+
+| Folder | Contents |
+|---|---|
+| `src/`, `tests/` | the emulator (Rust, [egui](https://github.com/emilk/egui)) and its tests |
+| `roms/` | the original monitor 5.12 and the monitor + Tiny BASIC (source and image) |
+| `examples/` | example programs in assembly and Tiny BASIC |
+| `docs/` | the user manuals (Markdown, HTML, PDF) and their screenshots |
+| `kicad/` | the KiCad 10 schematic and the script that generates it |
+| `Original Documentation/` | Micro Design's original manuals and files (Greek) |
+| `packaging/arch/` | the Arch Linux PKGBUILD |
+| `assets/` | the icon and the desktop entry |
 
 ## Build and run
 
@@ -36,22 +82,21 @@ microkit-emu [--rom original|basic|PATH] [--terminal | --keypad] [--debug] [prog
 
 ### Arch Linux
 
-`packaging/arch/` has a `PKGBUILD`. Build and install the package with:
+Install the package from the Releases page with `sudo pacman -U`, or build
+it with the PKGBUILD in `packaging/arch/` (it downloads the source of the
+release from GitHub):
 
 ```bash
-packaging/arch/make-source.sh
 cd packaging/arch && makepkg -si
 ```
 
-`make-source.sh` makes the source tarball from the committed tree (`git
-archive HEAD`) and puts its checksum in the PKGBUILD. The package installs
-`/usr/bin/microkit-emu`, a menu entry with an icon, the manuals in
-`/usr/share/doc/microkit-emu` and the examples in
+The package installs `/usr/bin/microkit-emu`, a menu entry with an icon,
+the manuals in `/usr/share/doc/microkit-emu` and the examples in
 `/usr/share/microkit-emu/examples`.
 
 ### Windows
 
-Ready-made: `microkit-emu-windows-x86_64.zip` (unzip, double-click
+Ready-made: `microkit-emu-windows-x86_64.zip` from the Releases page (unzip, double-click
 `microkit-emu.exe`; Windows 10 or newer, nothing to install). Settings are
 kept in `%APPDATA%\MicroKit-Emu\data`. Command-line options work from a
 Command Prompt as on Linux. On a PC without working Direct3D 12 or Vulkan
@@ -176,7 +221,7 @@ table).
   undocumented instructions), 8279, 8155 (RAM, ports, timer), 8251, the
   input buffer IC21 (J16 on port 0FH, the X3 inputs on port 3EH), and the
   cassette interface. I/O and memory decoding follow the schematic (see the
-  KiCad redraw in ../kicad).
+  KiCad redraw in [kicad/](kicad/)).
 - Tape: recording turns the SOD square wave into audio through a high-pass
   filter, like the recorder's AC-coupled input. Playback models the board's
   LM324 circuit as an envelope detector (SID = 1 while a tone is present).
@@ -199,8 +244,23 @@ table).
 cargo test
 ```
 
-The tests assemble `../Monitor Program.asm` and check it matches the ROM
+The tests assemble `Original Documentation/Monitor Program.asm` and check it matches the ROM
 byte for byte, then boot the real ROM and drive it: keypad M/GO/R, `-Err`
 on ROM writes, single step (including the manual's example), the VI key,
 downloads over DB9-1 and DB9-2, a terminal session, and tape write → WAV
 → read round trips from both the keypad and the terminal monitor.
+
+## License
+
+MicroKit-Emu is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option)
+any later version. See [LICENSE](LICENSE).
+
+This covers the emulator, the documentation and the KiCad redraw written
+for this project. It does not cover the Microkit's original material: the
+monitor ROM v5.12 (built into the emulator and in `roms/`), the original
+schematic and the manuals in `Original Documentation/` are Micro Design
+Ltd's work and are included for preservation and reference. Palo Alto Tiny
+BASIC is by Li-Chen Wang and Roger Rauskolb (1976, "@COPYLEFT ALL WRONGS
+RESERVED").
