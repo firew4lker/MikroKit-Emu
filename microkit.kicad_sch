@@ -1,0 +1,169 @@
+(kicad_sch
+	(version 20260306)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "d66176de-f989-5d71-8dd9-bcca02c4ab97")
+	(paper "A4")
+	(title_block
+		(title "Microkit V2.0")
+		(date "1985-03-07")
+		(rev "2.0")
+		(company "Micro Design Ltd (original design)")
+		(comment 1 "KiCad redraw of the scanned schematic")
+	)
+	(lib_symbols)
+	(text "Microkit V2.0 8085 trainer (Micro Design Ltd, Athens, 1985).\nRedrawn in KiCad from the three scanned schematic sheets dated 7-3-1985.\nReference designators, jumper numbers and connector pin numbers follow the original.\nSee NOTES.md for what was inferred and what to check on a real board."
+		(exclude_from_sim no)
+		(at 30 120 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "52fbb4f3-c4ce-5288-a60c-abe9bb26071b")
+	)
+	(sheet
+		(at 120 60)
+		(size 70 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "3dfffc04-cab6-5f20-9eb0-2b0832b0633a")
+		(property "Sheetname" "2. Serial ports, 8155 I/O, tape and power"
+			(at 120 59.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "serial_io_tape.kicad_sch"
+			(at 120 90.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "microkit"
+				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 210 60)
+		(size 70 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "48533ccb-2aa4-5ccb-ae1b-cde840047003")
+		(property "Sheetname" "3. I/O decoding, keyboard and display"
+			(at 210 59.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "keyboard_display.kicad_sch"
+			(at 210 90.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "microkit"
+				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 30 60)
+		(size 70 30)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0)
+		)
+		(uuid "4e16df29-3e6f-5f05-ab8d-d89b7db03f3e")
+		(property "Sheetname" "1. CPU and memory"
+			(at 30 59.3 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "cpu_memory.kicad_sch"
+			(at 30 90.6 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "microkit"
+				(path "/d66176de-f989-5d71-8dd9-bcca02c4ab97"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)
