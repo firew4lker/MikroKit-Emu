@@ -7,6 +7,10 @@ and looks and behaves like the board.
 
 ![MicroKit-Emu: a terminal session and the LCD example](docs/images/screenshot.png)
 
+The real Microkit, after a reset (the same `- 80 85` ready message):
+
+<img src="Original%20Documentation/Photo%20of%20the%20Board.jpeg" alt="The real Microkit V2.0 board" width="420">
+
 ## Features
 
 - **The board**: 6-digit 7-segment display, 24-key keypad (click it or use
@@ -42,8 +46,8 @@ Ready-made builds are on the [Releases page](https://github.com/firew4lker/Micro
   [Ελληνικά](docs/manual-el.md) ([PDF](docs/manual-el.pdf))
 - **Schematic**: the board redrawn in KiCad, in [kicad/](kicad/)
   ([PDF](kicad/microkit.pdf), [notes](kicad/NOTES.md))
-- **Original documentation**: the kit's manuals, schematic, monitor source
-  and ROM image, in [Original Documentation/](Original%20Documentation/)
+- **Original documentation**: the kit's manuals, schematic, monitor source,
+  ROM image and a photo of the board, in [Original Documentation/](Original%20Documentation/)
 
 ## What's in this repository
 
@@ -54,7 +58,7 @@ Ready-made builds are on the [Releases page](https://github.com/firew4lker/Micro
 | `examples/` | example programs in assembly and Tiny BASIC |
 | `docs/` | the user manuals (Markdown, HTML, PDF) and their screenshots |
 | `kicad/` | the KiCad 10 schematic and the script that generates it |
-| `Original Documentation/` | Micro Design's original manuals and files (Greek) |
+| `Original Documentation/` | Micro Design's original manuals and files (Greek), and a photo of the board |
 | `packaging/arch/` | the Arch Linux PKGBUILD |
 | `assets/` | the icon and the desktop entry |
 
