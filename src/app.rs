@@ -1543,7 +1543,11 @@ impl App {
                 .resizable(false)
                 .default_pos(pos2(420.0, 90.0))
                 .show(ctx, |ui| self.lcd_ui(ui));
-            self.settings.show_lcd = show;
+            if !show {
+                // closing the window unplugs the LCD (LCD menu → Not connected)
+                self.settings.lcd = LcdChoice::None;
+                self.m.board.lcd = None;
+            }
         }
         let mut show = self.settings.show_ports;
         if show {
