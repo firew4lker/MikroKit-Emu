@@ -20,7 +20,7 @@ optdepends=(
 options=('!lto')
 # made by make-source.sh (git archive of the emulator repository)
 source=("$pkgname-$pkgver.tar.gz")
-sha256sums=('8d9444d42c31e4b004c50cac3f5691a1cedd243a2957ad60ca83063319991dad')
+sha256sums=('7b6a456e21dc4948c62e815653d15d378bf7dcacddd1b0af9be6dd7950d500c1')
 
 prepare() {
   cd "$pkgname-$pkgver"
