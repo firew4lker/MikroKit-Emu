@@ -1769,6 +1769,8 @@ impl App {
         let (dot, pitch, cell_w, cell_h) = (dot_px / ppp, pitch_px / ppp, cell_w_px / ppp, cell_h_px / ppp);
         let pad = 10.0;
         let size = vec2(cols as f32 * cell_w + 2.0 * pad, rows as f32 * cell_h + 2.0 * pad);
+        // the notes below wrap to the display's width, so the window hugs the LCD
+        ui.set_max_width(size.x + 8.0);
         let (rect, _) = ui.allocate_exact_size(size + vec2(8.0, 8.0), Sense::hover());
         let p = ui.painter_at(rect);
         p.rect_filled(rect, 6.0, frame);
@@ -1812,16 +1814,17 @@ impl App {
         if !lcd.two_lines && lcd.initialized {
             info.push(tr("1-line mode").to_string());
         }
-        ui.label(RichText::new(info.join(" · ")).small().weak());
+        ui.add(egui::Label::new(RichText::new(info.join(" · ")).small().weak()).wrap());
         if lcd.early_writes > 0 {
-            ui.label(
-                RichText::new(trf!("{} bytes arrived while the LCD was busy; a real module may lose them. Wait longer between writes.", lcd.early_writes))
-                    .small()
-                    .color(ui.visuals().warn_fg_color),
-            );
+            let text = if lcd.early_writes == 1 {
+                tr("A byte arrived while the LCD was busy; a real module may lose it. Wait longer between writes.").to_string()
+            } else {
+                trf!("{} bytes arrived while the LCD was busy; a real module may lose them. Wait longer between writes.", lcd.early_writes)
+            };
+            ui.add(egui::Label::new(RichText::new(text).small().color(ui.visuals().warn_fg_color)).wrap());
         }
         if self.m.board.pio.csr & 0x02 == 0 {
-            ui.label(RichText::new(tr("Port B is an input, so the LCD sees nothing.")).small().weak());
+            ui.add(egui::Label::new(RichText::new(tr("Port B is an input, so the LCD sees nothing.")).small().weak()).wrap());
         }
     }
 

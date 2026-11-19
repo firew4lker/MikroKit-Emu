@@ -126,6 +126,7 @@ const GREEK: &[(&str, &str)] = &[
     ("display off", "οθόνη σβηστή"),
     ("1-line mode", "λειτουργία 1 γραμμής"),
     ("{} bytes arrived while the LCD was busy; a real module may lose them. Wait longer between writes.", "{} byte έφτασαν ενώ η LCD ήταν απασχολημένη· μια πραγματική οθόνη μπορεί να τα χάσει. Περιμένετε περισσότερο ανάμεσα στις εγγραφές."),
+    ("A byte arrived while the LCD was busy; a real module may lose it. Wait longer between writes.", "Ένα byte έφτασε ενώ η LCD ήταν απασχολημένη· μια πραγματική οθόνη μπορεί να το χάσει. Περιμένετε περισσότερο ανάμεσα στις εγγραφές."),
     ("Port B is an input, so the LCD sees nothing.", "Η θύρα B είναι είσοδος, οπότε η LCD δεν βλέπει τίποτα."),
     ("Language: English", "Γλώσσα: Ελληνικά"),
     // ----- monitor ROM
