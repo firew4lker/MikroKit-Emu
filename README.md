@@ -22,6 +22,8 @@ The real Mikrokit, after a reset (the same `- 80 85` ready message):
 - **Loading programs**: Intel HEX, raw binary or 8085 assembly source,
   assembled by the built-in assembler (also usable from the command line);
   or the kit's own serial download.
+- **Assembly editor**: write or paste 8085 assembly under the keypad, with
+  syntax colours, and load it into RAM with one click (Ctrl+Enter).
 - **Tape recorder**: save and load programs as WAV files, compatible with
   a real kit's cassette interface.
 - **I/O ports**: the 8155's ports as LEDs and switches, plus the X3 inputs.

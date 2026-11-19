@@ -56,8 +56,8 @@ class Run:
         shutil.rmtree(x, ignore_errors=True)
         os.makedirs(os.path.join(x, 'mikrokit-emu'))
         ron = settings_ron(lang, settings)
-        with open(os.path.join(x, 'mikrokit-emu', 'app.ron'), 'w') as f:
-            f.write('{\n    "settings": ' + json.dumps(ron) + ',\n}\n')
+        with open(os.path.join(x, 'mikrokit-emu', 'app.ron'), 'w', encoding='utf-8') as f:
+            f.write('{\n    "settings": ' + json.dumps(ron, ensure_ascii=False) + ',\n}\n')
         env = dict(ENV, XDG_DATA_HOME=x)
         self.p = subprocess.Popen([os.path.join(EMU, 'target/release/mikrokit-emu'), *args], cwd=EMU, env=env,
                                   stdout=subprocess.DEVNULL,
@@ -218,6 +218,28 @@ def lcd(lang):
     r.close()
 
 
+EDITOR_ERROR = {
+    'en': "; my first program\n        ORG 2000H\nSTART:  MVI A,47H       ; A = 47H\n        MOV B,Q         ; oops: no register Q\n        RST 1           ; back to the monitor\n        END START\n",
+    'el': "; το πρώτο μου πρόγραμμα\n        ORG 2000H\nSTART:  MVI A,47H       ; A = 47H\n        MOV B,Q         ; λάθος: δεν υπάρχει Q\n        RST 1           ; επιστροφή στο monitor\n        END START\n",
+}
+
+
+def editor(lang):
+    """The assembly editor: an error, then a wide panel with an example loaded."""
+    r = Run(lang, {'jumpers': jumpers(), 'editor_text': json.dumps(EDITOR_ERROR[lang], ensure_ascii=False)})
+    r.click(70, 445, 0.8)  # Assemble & load
+    r.shot('editor-error', (0, 412, 372 if lang == 'en' else 400, 694))
+    r.close()
+    count = open(os.path.join(EMU, 'examples', 'count.asm')).read()
+    r = Run(lang, {'jumpers': jumpers(), 'editor_text': json.dumps(count), 'editor_path': 'Some("count.asm")'})
+    r.drag(372, 300, 700, 300)  # widen the panel by its right edge
+    r.click(70, 445, 0.8)
+    board_focus(r)
+    r.type('g.', 1.5)
+    r.shot('editor-wide')
+    r.close()
+
+
 def readme(lang):
     """The README's picture: a terminal session and the LCD example (English only)."""
     if lang != 'en':
@@ -284,15 +306,15 @@ def dark(lang):
     r.close()
 
 
-ALL = [main_window, keypad_boot, keypad_memory, terminal, rom_menu, basic, lcd, lcd_menu, ports, debug, tape, dark, readme]
+ALL = [main_window, keypad_boot, keypad_memory, terminal, rom_menu, basic, lcd, lcd_menu, ports, debug, tape, dark, editor, readme]
 
 def numbered():
     """Red numbered markers on the main-window screenshot (see section 3)."""
     from PIL import Image, ImageDraw, ImageFont
     font = ImageFont.truetype('DejaVuSans-Bold.ttf', 18)
     marks = {
-        'en': [(1, 445, 12), (2, 905, 37), (3, 360, 108), (4, 360, 280), (5, 1150, 120), (6, 535, 711), (7, 300, 743)],
-        'el': [(1, 600, 12), (2, 1125, 37), (3, 360, 108), (4, 360, 280), (5, 1150, 120), (6, 640, 711), (7, 560, 743)],
+        'en': [(1, 445, 12), (2, 905, 37), (3, 360, 108), (4, 360, 280), (5, 1150, 120), (6, 535, 711), (7, 300, 743), (8, 345, 425)],
+        'el': [(1, 600, 12), (2, 1125, 37), (3, 360, 108), (4, 360, 280), (5, 1150, 120), (6, 640, 711), (7, 560, 743), (8, 375, 425)],
     }
     for lang, ms in marks.items():
         src = os.path.join(OUT, f'main-window-{lang}.png')

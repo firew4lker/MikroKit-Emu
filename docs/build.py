@@ -38,6 +38,8 @@ def img_width(src):
         return 300
     if 'lcd-menu' in src or 'lcd-16x2' in src:
         return 360
+    if 'editor-error' in src:
+        return 360
     if 'rom-menu' in src:
         return 460
     return 600

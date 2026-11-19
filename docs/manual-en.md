@@ -139,10 +139,13 @@ windows) from one session to the next.
 6. **Jumpers**: the board's most-used jumpers ([section 13](#13-jumpers)).
 7. **Status bar**: whether the CPU is running, the latest message, and the
    CPU registers (updated four times a second).
+8. **Assembly editor**: write 8085 assembly and load it into RAM with one
+   click ([section 7](#the-assembly-editor)).
 
 **Where your typing goes.** The keypad and the terminal both use your
 keyboard. Click the board to type on the keypad, or click the terminal to
-type there. The part that receives your typing has a coloured frame.
+type there. The part that receives your typing has a coloured frame. While
+you type in the assembly editor, the keys go only to the editor.
 
 ---
 
@@ -327,7 +330,8 @@ or binary file.
 
 ## 7. Writing your own programs
 
-Write 8085 assembly in any text editor and load the `.asm` file directly.
+Write 8085 assembly in the built-in [assembly editor](#the-assembly-editor),
+or in any text editor and load the `.asm` file with **Load program**.
 A minimal program:
 
 ```asm
@@ -337,7 +341,7 @@ START:  MVI A,47H       ; A = 47H
         END START
 ```
 
-Load it, press GO and EX, then R: register A shows 47.
+Assemble and load it, press GO and EX, then R: register A shows 47.
 
 **End your programs with `RST 1`** (code CF). The monitor then saves all
 the registers so you can look at them, and shows its prompt again.
@@ -357,6 +361,39 @@ mikrokit-emu --assemble program.asm -o program.bin --symbols
 
 A `.bin` output is a full 8 KB ROM image (0000–1FFF), handy for making your
 own monitor ROM.
+
+### The assembly editor
+
+The editor under the keypad is the quickest way to try a program. Type or
+paste your code, then press **▶ Assemble & load** (or **Ctrl+Enter** while
+typing). The code is assembled, put into RAM, and the GO address is set to
+the program's start (the label after `END`, or else its first address),
+just as with **Load program**. Then press GO and EX on the keypad, or type
+`G` in the terminal.
+
+![The editor showing an error](images/editor-error-en.png)
+
+- **Colours** mark the mnemonics, registers, numbers, strings, labels,
+  directives and comments.
+- **Errors**: the line with the error turns red and the message appears
+  next to the title, for example "line 4: 'Q' is not a register". Nothing
+  is loaded until you fix it. After a successful load the title shows, in
+  green, the addresses filled and the GO address.
+- Programs go into RAM (2000–3FFF). A program that starts below 2000H, in
+  the ROM, is not loaded and a message explains why.
+- **📂** opens an assembly file and **💾** saves the text to a file.
+- **Examples** puts one of the example programs into the editor
+  (`count.asm`, `outputs.asm`, `ports.asm`, `lcd.asm`). **New (empty
+  program)** starts again from a short template. Both replace the text in
+  the editor, so save it first if you want to keep it.
+- **Right-click** the text for Cut, Copy, Paste and Select all. The usual
+  keys work too: Ctrl+X, Ctrl+C, Ctrl+V, Ctrl+A, and Ctrl+Z to undo.
+- **Wider editor**: drag the right edge of the left panel to the right.
+  Long lines also scroll sideways; the line numbers stay in place.
+- The text is kept when you close the program and is there the next time
+  you start it.
+
+![The editor widened, with count.asm loaded and running](images/editor-wide-en.png)
 
 ### Example programs
 
@@ -628,6 +665,9 @@ EPROM and 6264 RAM.
 | F10 | VI | VI |
 | Ctrl+C | — | ^C, or copy the selection |
 | Ctrl+V | — | paste |
+
+In the assembly editor the keys type text, and **Ctrl+Enter** assembles
+and loads the program.
 
 ---
 
