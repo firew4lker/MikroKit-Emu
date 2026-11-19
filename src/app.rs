@@ -53,7 +53,29 @@ struct Settings {
     lcd: LcdChoice,
     show_lcd: bool,
     lcd_blue: bool,
+    /// The assembly editor's text, kept between sessions.
+    editor_text: String,
+    /// The file the editor was last opened from or saved to.
+    editor_path: Option<PathBuf>,
 }
+
+const EDITOR_TEMPLATE: &str = "\
+; 8085 assembly. \"Assemble & load\" (Ctrl+Enter) puts the program
+; in RAM and sets the GO address; then press GO and EX.
+
+        ORG 2000H
+START:  MVI A,47H       ; A = 47H
+        RST 1           ; back to the monitor
+        END START
+";
+
+/// Example programs offered in the editor.
+const EDITOR_EXAMPLES: [(&str, &str); 4] = [
+    ("count.asm", include_str!("../examples/count.asm")),
+    ("outputs.asm", include_str!("../examples/outputs.asm")),
+    ("ports.asm", include_str!("../examples/ports.asm")),
+    ("lcd.asm", include_str!("../examples/lcd.asm")),
+];
 
 /// Which LCD module is plugged into port B.
 #[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -135,6 +157,8 @@ impl Default for Settings {
             lcd: LcdChoice::None,
             show_lcd: true,
             lcd_blue: false,
+            editor_text: EDITOR_TEMPLATE.to_string(),
+            editor_path: None,
         }
     }
 }
@@ -191,6 +215,13 @@ pub struct App {
     bp_text: String,
     mem_addr: String,
     last_loaded: Option<String>,
+    /// Result of the last "Assemble & load": Ok(message) or Err((line, message)).
+    editor_result: Option<Result<String, (usize, String)>>,
+    /// The editor's selection (char range) as of before the latest right-click:
+    /// egui's text box moves the cursor on a right-click, losing the selection
+    /// the menu's Cut/Copy should act on.
+    editor_sel: (usize, usize),
+    editor_menu_was_open: bool,
 }
 
 /// Command-line options.
@@ -238,6 +269,9 @@ impl App {
             bp_text: String::new(),
             mem_addr: "2000".into(),
             last_loaded: None,
+            editor_result: None,
+            editor_sel: (0, 0),
+            editor_menu_was_open: false,
         };
         cc.egui_ctx.set_visuals_of(egui::Theme::Light, light_visuals());
         cc.egui_ctx.set_theme(app.settings.theme.preference());
@@ -386,33 +420,43 @@ impl App {
     }
 
     fn apply_image(&mut self, path: &Path, img: Image) {
+        if self.apply_image_named(&file_name(path), &img) {
+            self.settings.last_program = Some(path.to_path_buf());
+        }
+    }
+
+    /// Put an image into RAM and set the GO address. `name` is for messages.
+    fn apply_image_named(&mut self, name: &str, img: &Image) -> bool {
         if img.is_empty() {
-            return self.error(tr("Nothing to load"), trf!("{} contains no bytes.", file_name(path)));
+            self.error(tr("Nothing to load"), trf!("{} contains no bytes.", name));
+            return false;
         }
         let rom: Vec<_> = img.bytes.keys().filter(|&&a| a < 0x2000).collect();
         if !rom.is_empty() {
-            return self.error(
+            self.error(
                 tr("Program overlaps the ROM"),
                 trf!(
                     "Address {} is in the EPROM (0000–1FFF). Load user programs into RAM (2000–3FFF), or use File → Monitor ROM → Load from file… to replace the monitor.",
                     format!("{:04X}", rom[0])
                 ),
             );
+            return false;
         }
         let mut warn = String::new();
         for (&a, &b) in &img.bytes {
             if !self.m.board.poke(a, b) {
-                return self.error(
+                self.error(
                     tr("Program doesn't fit"),
                     trf!("There's no memory at {}. RAM is 2000–3FFF (and 4000–40FF in the 8155).", format!("{a:04X}")),
                 );
+                return false;
             }
             if (0x4000..=0x40FF).contains(&a) && warn.is_empty() {
                 warn = tr(" — warning: it writes into the monitor's area 4000–40FF").into();
             }
         }
         let start = img.start().unwrap();
-        let mut msg = trf!("Loaded {} → {}", file_name(path), img.describe());
+        let mut msg = trf!("Loaded {} → {}", name, img.describe());
         if self.settings.set_pc_after_load && monitor::USER_RAM.contains(&start) {
             let [lo, hi] = start.to_le_bytes();
             self.m.board.poke(monitor::PSAV, lo);
@@ -421,8 +465,269 @@ impl App {
         }
         msg.push_str(&warn);
         self.status = msg;
-        self.settings.last_program = Some(path.to_path_buf());
         self.last_loaded = Some(img.describe());
+        true
+    }
+
+    // ----- assembly editor -----------------------------------------------------
+
+    fn editor_assemble(&mut self) {
+        match asm::assemble(&self.settings.editor_text) {
+            Ok(out) => {
+                let name = self.settings.editor_path.as_deref().map(file_name).unwrap_or_else(|| tr("editor").to_string());
+                if self.apply_image_named(&name, &out.image) {
+                    self.editor_result = Some(Ok(self.status.clone()));
+                } else {
+                    self.editor_result = None;
+                }
+            }
+            Err(e) => {
+                self.status = trf!("Couldn't assemble: line {}: {}", e.line, e.msg);
+                self.editor_result = Some(Err((e.line, e.msg)));
+            }
+        }
+    }
+
+    fn editor_open(&mut self) {
+        let Some(p) = rfd::FileDialog::new()
+            .set_title(tr("Open assembly source"))
+            .add_filter(tr("8085 assembly"), &["asm", "a85", "s", "src", "txt"])
+            .add_filter(tr("All files"), &["*"])
+            .pick_file()
+        else {
+            return;
+        };
+        match std::fs::read_to_string(&p) {
+            Ok(t) => {
+                self.settings.editor_text = t;
+                self.settings.editor_path = Some(p);
+                self.editor_result = None;
+            }
+            Err(e) => self.error(tr("Couldn't read the file"), e.to_string()),
+        }
+    }
+
+    fn editor_save(&mut self) {
+        let name = self.settings.editor_path.as_deref().map(file_name).unwrap_or_else(|| "program.asm".into());
+        let Some(p) = rfd::FileDialog::new()
+            .set_title(tr("Save assembly source"))
+            .add_filter(tr("8085 assembly"), &["asm"])
+            .set_file_name(name)
+            .save_file()
+        else {
+            return;
+        };
+        match std::fs::write(&p, &self.settings.editor_text) {
+            Ok(()) => {
+                self.status = trf!("Saved {}", file_name(&p));
+                self.settings.editor_path = Some(p);
+            }
+            Err(e) => self.error(tr("Couldn't save"), e.to_string()),
+        }
+    }
+
+    /// Right-click menu actions on the editor: 0 cut, 1 copy, 2 paste, 3 select all.
+    fn editor_edit(&mut self, ctx: &egui::Context, id: egui::Id, action: u8) {
+        use egui::text::{CCursor, CharIndex};
+        let mut state = egui::text_edit::TextEditState::load(ctx, id).unwrap_or_default();
+        let text = &mut self.settings.editor_text;
+        let nchars = text.chars().count();
+        let (a, b) = (self.editor_sel.0.min(nchars), self.editor_sel.1.min(nchars));
+        let byte = |t: &str, c: usize| t.char_indices().nth(c).map(|x| x.0).unwrap_or(t.len());
+        let (ba, bb) = (byte(text, a), byte(text, b));
+        let (new_a, new_b) = match action {
+            0 | 1 => {
+                if a == b {
+                    return;
+                }
+                ctx.copy_text(text[ba..bb].to_string());
+                if action == 0 {
+                    text.replace_range(ba..bb, "");
+                    (a, a)
+                } else {
+                    (a, b)
+                }
+            }
+            2 => match arboard::Clipboard::new().and_then(|mut c| c.get_text()) {
+                Ok(paste) => {
+                    let paste = paste.replace("\r\n", "\n").replace('\r', "\n");
+                    let n = paste.chars().count();
+                    text.replace_range(ba..bb, &paste);
+                    (a + n, a + n)
+                }
+                Err(e) => {
+                    self.status = trf!("Nothing to paste ({})", e);
+                    return;
+                }
+            },
+            _ => (0, nchars),
+        };
+        self.editor_sel = (new_a, new_b);
+        let cc = |i: usize| CCursor { index: CharIndex(i), prefer_next_row: false };
+        state.cursor.set_char_range(Some(egui::text_selection::CCursorRange::two(cc(new_a), cc(new_b))));
+        state.store(ctx, id);
+        ctx.memory_mut(|m| m.request_focus(id));
+        if action == 0 || action == 2 {
+            self.editor_result = None;
+        }
+    }
+
+    /// The assembly editor under the keypad.
+    fn editor(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            ui.label(RichText::new(tr("Assembly editor")).strong());
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let mut pick = None;
+                egui::ComboBox::from_id_salt("editor_examples")
+                    .selected_text(tr("Examples"))
+                    .width(90.0)
+                    .show_ui(ui, |ui| {
+                        if ui.selectable_label(false, tr("New (empty program)")).clicked() {
+                            pick = Some(("", EDITOR_TEMPLATE));
+                        }
+                        for (name, text) in EDITOR_EXAMPLES {
+                            if ui.selectable_label(false, name).clicked() {
+                                pick = Some((name, text));
+                            }
+                        }
+                    });
+                if let Some((name, text)) = pick {
+                    self.settings.editor_text = text.to_string();
+                    self.settings.editor_path = (!name.is_empty()).then(|| PathBuf::from(name));
+                    self.editor_result = None;
+                }
+                if ui.button("💾").on_hover_text(tr("Save…")).clicked() {
+                    self.editor_save();
+                }
+                if ui.button("📂").on_hover_text(tr("Open…")).clicked() {
+                    self.editor_open();
+                }
+            });
+        });
+        ui.horizontal(|ui| {
+            if ui
+                .button(tr("▶ Assemble & load"))
+                .on_hover_text(tr("Assemble the code, load it into RAM and set the GO address (Ctrl+Enter)"))
+                .clicked()
+            {
+                self.editor_assemble();
+            }
+            match &self.editor_result {
+                Some(Ok(msg)) => {
+                    let short = msg.splitn(2, '→').nth(1).map(str::trim).unwrap_or(msg).to_string();
+                    ui.add(egui::Label::new(RichText::new(format!("✔ {short}")).small().color(Color32::from_rgb(0x2e, 0x9a, 0x45))).truncate());
+                }
+                Some(Err((line, msg))) => {
+                    ui.add(
+                        egui::Label::new(RichText::new(trf!("line {}: {}", line, msg)).small().color(ui.visuals().error_fg_color))
+                            .truncate(),
+                    );
+                }
+                None => {}
+            }
+        });
+
+        let dark = ui.visuals().dark_mode;
+        let pal = crate::asm_highlight::Palette::new(dark);
+        let font = FontId::monospace(12.5);
+        let error_line = match &self.editor_result {
+            Some(Err((l, _))) => Some(*l),
+            _ => None,
+        };
+        let id = ui.make_persistent_id("asm_editor_text");
+        // Ctrl+Enter assembles (take the key before the editor turns it into a newline)
+        if ui.memory(|m| m.has_focus(id)) && ui.input_mut(|i| i.consume_key(egui::Modifiers::COMMAND, EKey::Enter)) {
+            self.editor_assemble();
+        }
+        let lines = self.settings.editor_text.split('\n').count().max(1);
+        let numbers: String = (1..=lines).map(|n| format!("{n:>3}\n")).collect();
+        let bg = if dark { TERM_BG } else { Color32::WHITE };
+        let row_h = ui.fonts_mut(|f| f.row_height(&font));
+        egui::Frame::new()
+            .fill(bg)
+            .corner_radius(6)
+            .stroke(Stroke::new(1.0, ui.visuals().widgets.noninteractive.bg_stroke.color))
+            .inner_margin(egui::Margin::same(4))
+            .show(ui, |ui| {
+                // vertical scrolling moves the numbers and the code together;
+                // only the code scrolls sideways, so the numbers stay in view
+                egui::ScrollArea::vertical()
+                    .id_salt("asm_editor_scroll")
+                    .auto_shrink([false, false])
+                    .max_height(ui.available_height().max(120.0))
+                    .show(ui, |ui| {
+                        // enough rows to fill the box (the sideways scrollbar sits
+                        // at its bottom), so a click anywhere in it reaches the editor
+                        let fill_rows = ((ui.available_height() - 14.0) / row_h).floor().max(8.0) as usize;
+                        ui.horizontal_top(|ui| {
+                            ui.add(egui::Label::new(
+                                RichText::new(numbers.trim_end_matches('\n')).font(font.clone()).color(pal.comment),
+                            ).selectable(false));
+                            // the text box is exactly as wide as the longest line (or the box)
+                            let view_w = ui.available_width();
+                            let char_w = ui.fonts_mut(|f| f.glyph_width(&font, 'M'));
+                            let longest = self.settings.editor_text.lines().map(|l| l.chars().count()).max().unwrap_or(0);
+                            let text_w = (longest as f32 * char_w + 2.0 * char_w).max(view_w);
+                            egui::ScrollArea::horizontal().id_salt("asm_editor_hscroll").auto_shrink([false, true]).show(ui, |ui| {
+                            let mut layouter = |ui: &egui::Ui, buf: &dyn egui::TextBuffer, _wrap: f32| {
+                                let job = crate::asm_highlight::layout(buf.as_str(), font.clone(), &pal, error_line);
+                                ui.fonts_mut(|f| f.layout_job(job))
+                            };
+                            let before = self.settings.editor_text.len();
+                            let resp = ui.add(
+                                egui::TextEdit::multiline(&mut self.settings.editor_text)
+                                    .id(id)
+                                    .code_editor()
+                                    .font(font.clone())
+                                    .frame(egui::Frame::NONE)
+                                    .margin(egui::Margin::ZERO)
+                                    .lock_focus(true)
+                                    .desired_width(text_w)
+                                    .desired_rows(lines.max(fill_rows))
+                                    .layouter(&mut layouter),
+                            );
+                            let mut action = None;
+                            let mut menu_shown = false;
+                            resp.context_menu(|ui| {
+                                menu_shown = true;
+                                for (label, a) in [(tr("Cut"), 0), (tr("Copy"), 1), (tr("Paste"), 2), (tr("Select all"), 3)] {
+                                    if ui.button(label).clicked() {
+                                        action = Some(a);
+                                        ui.close();
+                                    }
+                                }
+                            });
+                            let right = ui.input(|i| {
+                                let b = egui::PointerButton::Secondary;
+                                i.pointer.button_pressed(b) || i.pointer.button_down(b) || i.pointer.button_released(b)
+                            });
+                            let menu_open = menu_shown || self.editor_menu_was_open;
+                            self.editor_menu_was_open = menu_shown;
+                            if let Some(mut st) = egui::text_edit::TextEditState::load(ui.ctx(), id) {
+                                let cc = |i: usize| egui::text::CCursor { index: egui::text::CharIndex(i), prefer_next_row: false };
+                                if right || menu_open {
+                                    // keep showing the selection the menu will act on
+                                    let (a, b) = self.editor_sel;
+                                    st.cursor.set_char_range(Some(egui::text_selection::CCursorRange::two(cc(a), cc(b))));
+                                    st.store(ui.ctx(), id);
+                                } else if let Some(r) = st.cursor.char_range() {
+                                    let r = r.as_sorted_char_range();
+                                    self.editor_sel = (r.start.0, r.end.0);
+                                }
+                            }
+                            if let Some(a) = action {
+                                self.editor_edit(ui.ctx(), id, a);
+                            }
+                            if resp.changed() && self.settings.editor_text.len() != before {
+                                // an old error line no longer matches the text
+                                if matches!(self.editor_result, Some(Err(_))) {
+                                    self.editor_result = None;
+                                }
+                            }
+                            });
+                        });
+                    });
+            });
     }
 
     fn send_file(&mut self, port: u8) {
@@ -1707,9 +2012,11 @@ impl eframe::App for App {
             self.status_bar(ui);
             ui.add_space(2.0);
         });
-        egui::Panel::left("board").resizable(false).exact_size(370.0).show(ui, |ui| {
+        egui::Panel::left("board").resizable(true).default_size(370.0).min_size(370.0).max_size(900.0).show(ui, |ui| {
             ui.add_space(8.0);
             self.board(ui);
+            ui.add_space(8.0);
+            self.editor(ui);
         });
         if self.settings.show_debug {
             egui::Panel::right("debug").default_size(330.0).show(ui, |ui| {

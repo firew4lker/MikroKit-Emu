@@ -1,6 +1,7 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod app;
+mod asm_highlight;
 mod i18n;
 mod system_theme;
 
@@ -214,7 +215,7 @@ pub fn signal_ready() {
 /// worked is remembered, so a PC with a broken Vulkan/Direct3D 12 driver
 /// goes straight to OpenGL next time.
 fn supervise(all: Vec<std::ffi::OsString>) -> std::process::ExitCode {
-    use std::io::{BufRead, BufReader, Read};
+    use std::io::{BufRead, BufReader};
     use std::process::{Command, Stdio};
 
     // a --renderer chosen by the user: use only that one
@@ -258,12 +259,18 @@ fn supervise(all: Vec<std::ffi::OsString>) -> std::process::ExitCode {
         // pass the child's error output through, keeping the end of it
         let stderr = child.stderr.take();
         let err_thread = std::thread::spawn(move || {
-            let mut text = String::new();
-            if let Some(mut e) = stderr {
-                let _ = e.read_to_string(&mut text);
+            // pass each line on as it comes; keep the end for an error report
+            let mut tail: std::collections::VecDeque<String> = std::collections::VecDeque::new();
+            if let Some(e) = stderr {
+                for line in BufReader::new(e).lines().map_while(Result::ok) {
+                    eprintln!("{line}");
+                    tail.push_back(line);
+                    if tail.len() > 40 {
+                        tail.pop_front();
+                    }
+                }
             }
-            eprint!("{text}");
-            text
+            tail.into_iter().collect::<Vec<_>>().join("\n")
         });
         let mut ready = false;
         if let Some(out) = child.stdout.take() {

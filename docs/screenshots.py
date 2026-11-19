@@ -60,7 +60,8 @@ class Run:
             f.write('{\n    "settings": ' + json.dumps(ron) + ',\n}\n')
         env = dict(ENV, XDG_DATA_HOME=x)
         self.p = subprocess.Popen([os.path.join(EMU, 'target/release/microkit-emu'), *args], cwd=EMU, env=env,
-                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                  stdout=subprocess.DEVNULL,
+                                  stderr=open(os.environ['MICROKIT_SHOT_LOG'], 'a') if os.environ.get('MICROKIT_SHOT_LOG') else subprocess.DEVNULL)
         for _ in range(60):
             r = subprocess.run(['xwininfo', '-root', '-tree'], env=ENV, capture_output=True, text=True)
             if 'MicroKit-Emu' in r.stdout:
