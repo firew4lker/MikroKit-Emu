@@ -1,6 +1,6 @@
 [package]
 name = "mikrokit-emu"
-version = "0.1.3"
+version = "1.0.0"
 edition = "2024"
 description = "MikroKit-Emu: an emulator of the Micro Design Mikrokit 8085 trainer"
 license = "GPL-3.0-or-later"
