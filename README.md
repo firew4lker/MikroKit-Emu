@@ -34,6 +34,21 @@ microkit-emu [--rom original|basic|PATH] [--terminal | --keypad] [--debug] [prog
 ```
 
 
+### Arch Linux
+
+`packaging/arch/` has a `PKGBUILD`. Build and install the package with:
+
+```bash
+packaging/arch/make-source.sh
+cd packaging/arch && makepkg -si
+```
+
+`make-source.sh` makes the source tarball from the committed tree (`git
+archive HEAD`) and puts its checksum in the PKGBUILD. The package installs
+`/usr/bin/microkit-emu`, a menu entry with an icon, the manuals in
+`/usr/share/doc/microkit-emu` and the examples in
+`/usr/share/microkit-emu/examples`.
+
 ### Windows
 
 Ready-made: `microkit-emu-windows-x86_64.zip` (unzip, double-click
