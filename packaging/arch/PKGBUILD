@@ -46,7 +46,7 @@ package() {
   cd "MicroKit-Emu-$pkgver"
   install -Dm755 target/release/microkit-emu "$pkgdir/usr/bin/microkit-emu"
   install -Dm644 assets/microkit-emu.desktop "$pkgdir/usr/share/applications/microkit-emu.desktop"
-  for s in 32 48 64 128 256; do
+  for s in 16 24 32 48 64 128 256; do
     install -Dm644 "assets/icon-$s.png" "$pkgdir/usr/share/icons/hicolor/${s}x${s}/apps/microkit-emu.png"
   done
   install -Dm644 README.md -t "$pkgdir/usr/share/doc/$pkgname"
