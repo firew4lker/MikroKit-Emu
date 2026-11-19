@@ -900,7 +900,7 @@ impl App {
                     if pending > 0 {
                         text.push_str(&trf!(" · sending {} bytes", pending));
                     } else if !self.settings.jumpers.j16_terminal {
-                        text.push_str(" · J16 off: keypad monitor active");
+                        text.push_str(tr(" · J16 off: keypad monitor active"));
                     }
                     ui.add(egui::Label::new(RichText::new(text).strong()).truncate());
                 });

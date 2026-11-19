@@ -9,6 +9,9 @@ serial port.
 Written in Rust with [egui](https://github.com/emilk/egui) / eframe, so it
 builds on Linux, Windows and macOS.
 
+**Manual:** [English](docs/manual-en.md) ([PDF](docs/manual-en.pdf)) ·
+[Ελληνικά](docs/manual-el.md) ([PDF](docs/manual-el.pdf))
+
 ## Build and run
 
 ```bash
