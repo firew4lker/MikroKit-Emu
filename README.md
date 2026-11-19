@@ -33,6 +33,24 @@ The choice is remembered, and switching resets the kit.
 microkit-emu [--rom original|basic|PATH] [--terminal | --keypad] [--debug] [program.hex|.asm|.bin]
 ```
 
+
+### Windows
+
+Ready-made: `microkit-emu-windows-x86_64.zip` (unzip, double-click
+`microkit-emu.exe`; Windows 10 or newer, nothing to install). Settings are
+kept in `%APPDATA%\MicroKit-Emu\data`. Command-line options work from a
+Command Prompt as on Linux. On a PC without working Direct3D 12 or Vulkan
+drivers (some virtual machines), start it with OpenGL:
+`set WGPU_BACKEND=gl` then `microkit-emu.exe`.
+
+To build it yourself on Windows, install Rust and run `cargo build
+--release`. To cross-compile from Linux (needs the MinGW-w64 compiler):
+
+```bash
+rustup target add x86_64-pc-windows-gnu
+cargo build --release --target x86_64-pc-windows-gnu
+```
+
 ## Using it
 
 - **Keypad monitor** (J16 off, the default): click the board, then type

@@ -85,6 +85,14 @@ fn assemble_cli(args: &[std::ffi::OsString]) -> std::process::ExitCode {
 
 fn main() -> std::process::ExitCode {
     let all: Vec<std::ffi::OsString> = std::env::args_os().skip(1).collect();
+    // A Windows GUI program has no console; use the one it was started from
+    // (if any) so --help and --assemble can print.
+    #[cfg(windows)]
+    if !all.is_empty() {
+        unsafe {
+            windows_sys::Win32::System::Console::AttachConsole(windows_sys::Win32::System::Console::ATTACH_PARENT_PROCESS);
+        }
+    }
     if all.first().and_then(|a| a.to_str()) == Some("--assemble") {
         return assemble_cli(&all[1..]);
     }

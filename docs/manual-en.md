@@ -73,6 +73,15 @@ The folder also contains this manual's README and the `examples` folder
 with the sample programs. The ready-made program needs a recent Linux
 (glibc 2.44 or newer).
 
+### Windows (ready-made program)
+
+Unzip `microkit-emu-windows-x86_64.zip` and double-click
+`microkit-emu.exe` in the `microkit-emu` folder. It needs Windows 10 or
+newer and nothing else. The folder also has the README, the manuals and the
+`examples` folder. If the window doesn't open on a PC without proper
+graphics drivers (some virtual machines), open a Command Prompt in that
+folder and run `set WGPU_BACKEND=gl` and then `microkit-emu.exe`.
+
 ### Building from the source code (Linux, Windows, macOS)
 
 Install Rust from <https://rustup.rs>, then in the `emulator` folder run:

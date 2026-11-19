@@ -118,6 +118,13 @@ an <strong>HD44780 character LCD</strong>.</p>
 <p>The folder also contains this manual's README and the <code>examples</code> folder
 with the sample programs. The ready-made program needs a recent Linux
 (glibc 2.44 or newer).</p>
+<h3 id="windows-ready-made-program">Windows (ready-made program)</h3>
+<p>Unzip <code>microkit-emu-windows-x86_64.zip</code> and double-click
+<code>microkit-emu.exe</code> in the <code>microkit-emu</code> folder. It needs Windows 10 or
+newer and nothing else. The folder also has the README, the manuals and the
+<code>examples</code> folder. If the window doesn't open on a PC without proper
+graphics drivers (some virtual machines), open a Command Prompt in that
+folder and run <code>set WGPU_BACKEND=gl</code> and then <code>microkit-emu.exe</code>.</p>
 <h3 id="building-from-the-source-code-linux-windows-macos">Building from the source code (Linux, Windows, macOS)</h3>
 <p>Install Rust from <a href="https://rustup.rs">https://rustup.rs</a>, then in the <code>emulator</code> folder run:</p>
 <pre><code class="language-bash">cargo run --release
