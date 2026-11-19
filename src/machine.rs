@@ -87,7 +87,8 @@ pub struct Board {
     /// Last SID level the CPU read (for the activity LED).
     pub sid_level: bool,
     pub tape: Tape,
-    /// Inputs on connector X3 → port 0FH bits 1 and 2 (bit 0 is J16).
+    /// Inputs on connector X3 (pins 1-3 → bits 0-2), read through IC21 at
+    /// ports 3EH/3FH. Open inputs read as 1.
     pub x3_in: u8,
     trap_edge: bool,
 }
@@ -105,7 +106,7 @@ impl Board {
             sod: false,
             sid_level: true,
             tape: Tape::default(),
-            x3_in: 0b110,
+            x3_in: 0b111,
             trap_edge: false,
         }
     }
@@ -115,7 +116,8 @@ impl Board {
         match a {
             0x0000..=0x1FFF => self.rom[a as usize],
             0x2000..=0x3FFF => self.ram[a as usize - 0x2000],
-            0x4000..=0x43FF if self.jumpers.j14_8155_ram => self.pio.ram[(a & 0xFF) as usize],
+            // IC18 Y4: A8-A10 aren't decoded, so the 256 bytes repeat 8 times
+            0x4000..=0x47FF if self.jumpers.j14_8155_ram => self.pio.ram[(a & 0xFF) as usize],
             _ => 0xFF,
         }
     }
@@ -127,7 +129,7 @@ impl Board {
                 self.ram[a as usize - 0x2000] = v;
                 true
             }
-            0x4000..=0x43FF if self.jumpers.j14_8155_ram => {
+            0x4000..=0x47FF if self.jumpers.j14_8155_ram => {
                 self.pio.ram[(a & 0xFF) as usize] = v;
                 true
             }
@@ -143,6 +145,36 @@ impl Board {
     }
 }
 
+#[derive(Debug, PartialEq)]
+enum Io {
+    J16,
+    Uart,
+    Kbd,
+    X3,
+    Pio,
+}
+
+/// I/O decoding as on the schematic. During IN/OUT the port number is on
+/// A8-A15. IC18 Y4 (A15..A11 = 01000) selects the 8155: ports 40-47H.
+/// IC17 needs A15 = 0 and A11-A9 = 111 (via IC19), and A14-A12 picks
+/// Y0 /CS2 (0E-0FH, J16), Y1 /CS3 (1E-1FH, 8251), Y2 /CS4 (2E-2FH, 8279),
+/// Y3 /CS5 (3E-3FH, X3).
+fn io_select(port: u8) -> Option<Io> {
+    if port & 0xF8 == 0x40 {
+        return Some(Io::Pio);
+    }
+    if port & 0x8E != 0x0E {
+        return None;
+    }
+    match (port >> 4) & 7 {
+        0 => Some(Io::J16),
+        1 => Some(Io::Uart),
+        2 => Some(Io::Kbd),
+        3 => Some(Io::X3),
+        _ => None,
+    }
+}
+
 impl Bus for Board {
     fn read(&mut self, a: u16) -> u8 {
         self.peek(a)
@@ -152,43 +184,45 @@ impl Bus for Board {
     }
     fn input(&mut self, port: u8, now: u64) -> u8 {
         self.uart.update(now);
-        match port & 0xF8 {
-            0x08 => 0xF8 | (self.x3_in & 0b110) | (!self.jumpers.j16_terminal) as u8,
-            0x18 => {
+        match io_select(port) {
+            // IC21 drives only the bits it has; the others float high
+            Some(Io::J16) => 0xFE | (!self.jumpers.j16_terminal) as u8,
+            Some(Io::X3) => 0xF8 | (self.x3_in & 0b111),
+            Some(Io::Uart) => {
                 if port & 1 != 0 {
                     self.uart.read_status(now)
                 } else {
                     self.uart.read_data()
                 }
             }
-            0x28 => {
+            Some(Io::Kbd) => {
                 if port & 1 != 0 {
                     self.kbd.read_status()
                 } else {
                     self.kbd.read_data()
                 }
             }
-            0x40 => self.pio.read_io(port & 7, now),
-            _ => 0xFF,
+            Some(Io::Pio) => self.pio.read_io(port & 7, now),
+            None => 0xFF,
         }
     }
     fn output(&mut self, port: u8, v: u8, now: u64) {
-        match port & 0xF8 {
-            0x18 => {
+        match io_select(port) {
+            Some(Io::Uart) => {
                 if port & 1 != 0 {
                     self.uart.write_ctl(v)
                 } else {
                     self.uart.write_data(v, now)
                 }
             }
-            0x28 => {
+            Some(Io::Kbd) => {
                 if port & 1 != 0 {
                     self.kbd.write_cmd(v)
                 } else {
                     self.kbd.write_data(v)
                 }
             }
-            0x40 => self.pio.write_io(port & 7, v, now),
+            Some(Io::Pio) => self.pio.write_io(port & 7, v, now),
             _ => {}
         }
     }

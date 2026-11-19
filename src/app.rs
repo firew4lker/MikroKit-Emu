@@ -1356,17 +1356,26 @@ impl App {
         });
         ui.label(RichText::new(tr("Outputs are LEDs; inputs are switches you can click.")).weak().small());
         ui.separator();
-        ui.label(RichText::new(tr("Input port 0FH (IC21) — connector X3")).strong());
-        ui.horizontal(|ui| {
-            for bit in [2u8, 1] {
-                let on = self.m.board.x3_in & (1 << bit) != 0;
-                if bit_switch(ui, on, &format!("D{bit}")) {
-                    self.m.board.x3_in ^= 1 << bit;
+        ui.label(RichText::new(tr("Input ports (IC21)")).strong());
+        egui::Grid::new("inports").num_columns(3).spacing([8.0, 6.0]).show(ui, |ui| {
+            ui.label(RichText::new("3EH").monospace()).on_hover_text(tr("Connector X3, pins 1-3 → D0-D2"));
+            ui.horizontal(|ui| {
+                for bit in [2u8, 1, 0] {
+                    let on = self.m.board.x3_in & (1 << bit) != 0;
+                    if bit_switch(ui, on, &format!("D{bit}")) {
+                        self.m.board.x3_in ^= 1 << bit;
+                    }
                 }
-            }
-            ui.add_space(8.0);
-            led(ui, !self.settings.jumpers.j16_terminal, "D0");
+            });
+            ui.label(RichText::new(tr("X3 pins 1-3")).weak().small());
+            ui.end_row();
+            ui.label(RichText::new("0FH").monospace());
+            ui.horizontal(|ui| {
+                ui.add_space(60.0);
+                led(ui, !self.settings.jumpers.j16_terminal, "D0");
+            });
             ui.label(RichText::new(tr("D0 = J16 (0 = terminal monitor)")).weak().small());
+            ui.end_row();
         });
         ui.separator();
         let (count, mode) = self.m.board.pio.timer_setting();

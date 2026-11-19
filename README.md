@@ -55,7 +55,7 @@ microkit-emu [--rom original|basic|PATH] [--terminal | --keypad] [--debug] [prog
   them into a real Microkit, or record a real kit's tape to load here.
 - **I/O ports** (🔌 I/O ports): the 8155's ports A, B and C on connector X2
   shown as LEDs (outputs) or clickable switches (inputs), following the
-  8155's command register, plus the X3 inputs on port 0FH and the timer.
+  8155's command register, plus the X3 inputs (port 3EH) and the timer.
   Try `examples/ports.asm` (switches → LEDs) and `examples/outputs.asm`
   (all three ports as outputs).
 - **Copy and paste**: drag over terminal text to select it. Right-click
@@ -128,7 +128,9 @@ table).
   the tape routines' delay loops.
 - Chips emulated: 8085 (including RIM/SIM, all interrupts and the
   undocumented instructions), 8279, 8155 (RAM, ports, timer), 8251, the
-  3-bit input port at 0FH (J16 and X3), and the cassette interface.
+  input buffer IC21 (J16 on port 0FH, the X3 inputs on port 3EH), and the
+  cassette interface. I/O and memory decoding follow the schematic (see the
+  KiCad redraw in ../kicad).
 - Tape: recording turns the SOD square wave into audio through a high-pass
   filter, like the recorder's AC-coupled input. Playback models the board's
   LM324 circuit as an envelope detector (SID = 1 while a tone is present).

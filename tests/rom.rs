@@ -277,3 +277,27 @@ fn builtin_roms() {
         assert_eq!(display_text(&m.display()), "- 80|85", "{name} boots");
     }
 }
+
+#[test]
+fn io_and_memory_decoding_follow_the_schematic() {
+    use microkit_emu::cpu::Bus;
+    let mut m = Machine::new();
+    // X3 pins 1-3 on D0-D2 of ports 3EH/3FH, open inputs read 1
+    m.board.x3_in = 0b101;
+    assert_eq!(m.board.input(0x3E, 0), 0xFD);
+    assert_eq!(m.board.input(0x3F, 0), 0xFD);
+    // port 0FH: only J16 on D0
+    m.board.jumpers.j16_terminal = true;
+    assert_eq!(m.board.input(0x0F, 0), 0xFE);
+    m.board.jumpers.j16_terminal = false;
+    assert_eq!(m.board.input(0x0E, 0), 0xFF);
+    // nothing answers outside the decoded ports
+    for p in [0x08u8, 0x18, 0x28, 0x38, 0x4E, 0x8F, 0xFF] {
+        assert_eq!(m.board.input(p, 0), 0xFF, "port {p:02X}");
+    }
+    // 8155 RAM repeats every 100H through 4000-47FF
+    assert!(m.board.poke(0x4012, 0x5A));
+    assert_eq!(m.board.peek(0x4712), 0x5A);
+    assert_eq!(m.board.peek(0x4412), 0x5A);
+    assert_eq!(m.board.peek(0x4812), 0xFF);
+}
