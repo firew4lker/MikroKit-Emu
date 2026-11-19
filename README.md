@@ -103,9 +103,13 @@ the manuals in `/usr/share/doc/microkit-emu` and the examples in
 Ready-made: `microkit-emu-windows-x86_64.zip` from the Releases page (unzip, double-click
 `microkit-emu.exe`; Windows 10 or newer, nothing to install). Settings are
 kept in `%APPDATA%\MicroKit-Emu\data`. Command-line options work from a
-Command Prompt as on Linux. On a PC without working Direct3D 12 or Vulkan
-drivers (some virtual machines), start it with OpenGL:
-`set WGPU_BACKEND=gl` then `microkit-emu.exe`.
+Command Prompt as on Linux.
+
+Graphics: the program draws with Vulkan or Direct3D 12 (Metal on macOS).
+If that fails before the window appears (older drivers, some virtual
+machines), it restarts itself with OpenGL. If OpenGL fails too, it shows
+the reason in a message box and saves it to `error.log` in the settings
+folder.
 
 To build it yourself on Windows, install Rust and run `cargo build
 --release`. To cross-compile from Linux (needs the MinGW-w64 compiler):

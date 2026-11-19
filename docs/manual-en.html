@@ -122,9 +122,12 @@ with the sample programs. The ready-made program needs a recent Linux
 <p>Unzip <code>microkit-emu-windows-x86_64.zip</code> and double-click
 <code>microkit-emu.exe</code> in the <code>microkit-emu</code> folder. It needs Windows 10 or
 newer and nothing else. The folder also has the README, the manuals and the
-<code>examples</code> folder. If the window doesn't open on a PC without proper
-graphics drivers (some virtual machines), open a Command Prompt in that
-folder and run <code>set WGPU_BACKEND=gl</code> and then <code>microkit-emu.exe</code>.</p>
+<code>examples</code> folder.</p>
+<p>If the graphics driver can't run the program's normal drawing method
+(Vulkan or Direct3D 12), it restarts itself with OpenGL. If that fails too,
+a message explains why and the report is saved in
+<code>%APPDATA%\MicroKit-Emu\data\error.log</code>. Updating the graphics driver
+usually helps; in a virtual machine, turn on 3D acceleration.</p>
 <h3 id="building-from-the-source-code-linux-windows-macos">Building from the source code (Linux, Windows, macOS)</h3>
 <p>Install Rust from <a href="https://rustup.rs">https://rustup.rs</a>, then in the <code>emulator</code> folder run:</p>
 <pre><code class="language-bash">cargo run --release

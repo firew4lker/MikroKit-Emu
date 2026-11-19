@@ -78,9 +78,13 @@ with the sample programs. The ready-made program needs a recent Linux
 Unzip `microkit-emu-windows-x86_64.zip` and double-click
 `microkit-emu.exe` in the `microkit-emu` folder. It needs Windows 10 or
 newer and nothing else. The folder also has the README, the manuals and the
-`examples` folder. If the window doesn't open on a PC without proper
-graphics drivers (some virtual machines), open a Command Prompt in that
-folder and run `set WGPU_BACKEND=gl` and then `microkit-emu.exe`.
+`examples` folder.
+
+If the graphics driver can't run the program's normal drawing method
+(Vulkan or Direct3D 12), it restarts itself with OpenGL. If that fails too,
+a message explains why and the report is saved in
+`%APPDATA%\MicroKit-Emu\data\error.log`. Updating the graphics driver
+usually helps; in a virtual machine, turn on 3D acceleration.
 
 ### Building from the source code (Linux, Windows, macOS)
 

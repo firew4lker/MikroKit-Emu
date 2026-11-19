@@ -96,13 +96,7 @@ fn main() -> std::process::ExitCode {
     if all.first().and_then(|a| a.to_str()) == Some("--assemble") {
         return assemble_cli(&all[1..]);
     }
-    match run_gui(all) {
-        Ok(()) => std::process::ExitCode::SUCCESS,
-        Err(e) => {
-            eprintln!("{e}");
-            std::process::ExitCode::FAILURE
-        }
-    }
+    run_gui_with_fallback(all)
 }
 
 const APP_NAME: &str = "MicroKit-Emu";
@@ -128,6 +122,7 @@ fn migrate_settings() {
 
 fn run_gui(all: Vec<std::ffi::OsString>) -> eframe::Result {
     let mut opts = app::Options::default();
+    let mut renderer: Option<String> = None;
     let mut args = all.into_iter();
     while let Some(a) = args.next() {
         match a.to_str() {
@@ -142,6 +137,7 @@ fn run_gui(all: Vec<std::ffi::OsString>) -> eframe::Result {
             Some("--terminal") => opts.terminal = Some(true),
             Some("--keypad") => opts.terminal = Some(false),
             Some("--debug") => opts.debug = true,
+            Some("--renderer") => renderer = args.next().and_then(|r| r.into_string().ok()),
             Some("-h") | Some("--help") => {
                 println!("{USAGE}");
                 return Ok(());
@@ -159,7 +155,77 @@ fn run_gui(all: Vec<std::ffi::OsString>) -> eframe::Result {
             .with_app_id(APP_NAME)
             .with_inner_size([1180.0, 760.0])
             .with_min_inner_size([820.0, 560.0]),
+        renderer: if renderer.as_deref() == Some("glow") { eframe::Renderer::Glow } else { eframe::Renderer::Wgpu },
         ..Default::default()
     };
     eframe::run_native(APP_NAME, options, Box::new(move |cc| Ok(Box::new(app::App::new(cc, opts)))))
+}
+
+/// Set once the first frame has been drawn: a failure before that is a
+/// graphics start-up problem, worth retrying with the other renderer.
+pub static FIRST_FRAME: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// The last panic message, for the error report.
+static PANIC_MESSAGE: std::sync::Mutex<String> = std::sync::Mutex::new(String::new());
+
+/// Run the window. If the default renderer (wgpu: Vulkan, Direct3D 12 or
+/// Metal) fails before the first frame, start again with OpenGL. A process
+/// can create its window event loop only once, so the retry is a new process.
+fn run_gui_with_fallback(all: Vec<std::ffi::OsString>) -> std::process::ExitCode {
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        if let Ok(mut m) = PANIC_MESSAGE.lock() {
+            *m = info.to_string();
+        }
+        default_hook(info);
+    }));
+    let forced = all.iter().any(|a| a == "--renderer");
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| run_gui(all.clone())));
+    let error = match result {
+        Ok(Ok(())) => return std::process::ExitCode::SUCCESS,
+        Ok(Err(e)) => e.to_string(),
+        Err(_) => PANIC_MESSAGE.lock().map(|m| m.clone()).unwrap_or_default(),
+    };
+    let started = FIRST_FRAME.load(std::sync::atomic::Ordering::Relaxed);
+    if !started && !forced {
+        if let Ok(exe) = std::env::current_exe() {
+            let mut args: Vec<std::ffi::OsString> = vec!["--renderer".into(), "glow".into()];
+            args.extend(all);
+            // the new process reports its own errors; this one can go
+            if std::process::Command::new(exe).args(args).spawn().is_ok() {
+                return std::process::ExitCode::SUCCESS;
+            }
+        }
+    }
+    report_error(&error, started);
+    std::process::ExitCode::FAILURE
+}
+
+/// Tell the user why the program stopped: a message box on Windows (it has
+/// no console), stderr elsewhere, and a log file next to the settings.
+fn report_error(error: &str, started: bool) {
+    let what = if started { "MicroKit-Emu stopped because of an error." } else { "MicroKit-Emu could not open its window." };
+    let mut text = format!("{what}\n\n{error}");
+    if let Some(dir) = eframe::storage_dir(APP_NAME) {
+        let log = dir.join("error.log");
+        if std::fs::create_dir_all(&dir).is_ok() && std::fs::write(&log, &text).is_ok() {
+            text.push_str(&format!("\n\nThis report was saved to {}", log.display()));
+        }
+    }
+    if !started {
+        text.push_str(
+            "\n\nBoth Vulkan/Direct3D 12 and OpenGL failed. Updating the graphics driver usually helps; \
+             in a virtual machine, enable 3D acceleration.",
+        );
+    }
+    eprintln!("{text}");
+    #[cfg(windows)]
+    {
+        use windows_sys::Win32::UI::WindowsAndMessaging::{MB_ICONERROR, MB_OK, MessageBoxW};
+        let wide = |s: &str| s.encode_utf16().chain(std::iter::once(0)).collect::<Vec<u16>>();
+        let (t, c) = (wide(&text), wide(APP_NAME));
+        unsafe {
+            MessageBoxW(std::ptr::null_mut(), t.as_ptr(), c.as_ptr(), MB_OK | MB_ICONERROR);
+        }
+    }
 }

@@ -1681,6 +1681,7 @@ impl eframe::App for App {
     }
 
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        crate::FIRST_FRAME.store(true, std::sync::atomic::Ordering::Relaxed);
         let ctx = ui.ctx().clone();
         // drag and drop
         let dropped: Vec<PathBuf> = ctx.input(|i| i.raw.dropped_files.iter().map(|f| f.path().to_path_buf()).filter(|p| !p.as_os_str().is_empty()).collect());
