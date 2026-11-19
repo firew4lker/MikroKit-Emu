@@ -38,7 +38,7 @@ Ready-made builds are on the [Releases page](https://github.com/firew4lker/Micro
 |---|---|
 | `microkit-emu-linux-x86_64.tar.gz` | Linux (x86-64, glibc 2.44 or newer) |
 | `microkit-emu-windows-x86_64.zip` | Windows 10 or newer (64-bit) |
-| `microkit-emu-0.1.1-1-x86_64.pkg.tar.zst` | Arch Linux (`sudo pacman -U …`) |
+| `microkit-emu-0.1.2-1-x86_64.pkg.tar.zst` | Arch Linux (`sudo pacman -U …`) |
 
 ## Documentation
 
