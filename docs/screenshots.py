@@ -125,6 +125,8 @@ class Run:
         print('wrote', path, im.size)
 
     def close(self):
+        # the program runs its window in a child process (see supervise in main.rs)
+        subprocess.run(['pkill', '-P', str(self.p.pid)], check=False)
         self.p.kill()
         self.p.wait()
         time.sleep(0.5)

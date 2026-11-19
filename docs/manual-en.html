@@ -124,10 +124,13 @@ with the sample programs. The ready-made program needs a recent Linux
 newer and nothing else. The folder also has the README, the manuals and the
 <code>examples</code> folder.</p>
 <p>If the graphics driver can't run the program's normal drawing method
-(Vulkan or Direct3D 12), it restarts itself with OpenGL. If that fails too,
-a message explains why and the report is saved in
+(Vulkan or Direct3D 12), even if it crashes, the program starts again with
+OpenGL and remembers that OpenGL works on that PC. If that fails too, a
+message explains why and the report is saved in
 <code>%APPDATA%\MicroKit-Emu\data\error.log</code>. Updating the graphics driver
-usually helps; in a virtual machine, turn on 3D acceleration.</p>
+usually helps; in a virtual machine, turn on 3D acceleration. After a
+driver update, start it once with <code>microkit-emu.exe --renderer wgpu</code> to use
+the normal method again.</p>
 <h3 id="building-from-the-source-code-linux-windows-macos">Building from the source code (Linux, Windows, macOS)</h3>
 <p>Install Rust from <a href="https://rustup.rs">https://rustup.rs</a>, then in the <code>emulator</code> folder run:</p>
 <pre><code class="language-bash">cargo run --release
@@ -166,6 +169,10 @@ usually helps; in a virtual machine, turn on 3D acceleration.</p>
 <tr>
 <td><code>--debug</code></td>
 <td>open the debug panel</td>
+</tr>
+<tr>
+<td><code>--renderer wgpu</code> / <code>glow</code></td>
+<td>drawing method: Vulkan/Direct3D 12 or OpenGL (automatic by default)</td>
 </tr>
 <tr>
 <td><code>program</code></td>

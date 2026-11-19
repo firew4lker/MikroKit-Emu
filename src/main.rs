@@ -15,6 +15,9 @@ options:
   --terminal     start with J16 on (terminal monitor)
   --keypad       start with J16 off (keypad monitor)
   --debug        show the debug panel
+  --renderer wgpu|glow
+                 drawing method: Vulkan/Direct3D 12/Metal or OpenGL
+                 (default: automatic, with a fallback to OpenGL)
   -h, --help     show this help
 
 assembler (no window):
@@ -96,7 +99,34 @@ fn main() -> std::process::ExitCode {
     if all.first().and_then(|a| a.to_str()) == Some("--assemble") {
         return assemble_cli(&all[1..]);
     }
-    run_gui_with_fallback(all)
+    // `--child --renderer R …`: this process is the window (see supervise)
+    if all.first().is_some_and(|a| a == "--child") {
+        // a crash should end this process at once (no Windows Error
+        // Reporting dialog or debugger), so the supervisor can react
+        #[cfg(windows)]
+        unsafe {
+            use windows_sys::Win32::System::Diagnostics::Debug::{SEM_FAILCRITICALERRORS, SEM_NOGPFAULTERRORBOX, SetErrorMode};
+            SetErrorMode(SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
+        }
+        let mut args: Vec<std::ffi::OsString> = all[1..].to_vec();
+        let mut renderer = String::from("wgpu");
+        if let Some(i) = args.iter().position(|a| a == "--renderer") {
+            if let Some(r) = args.get(i + 1).and_then(|r| r.to_str()) {
+                renderer = r.to_string();
+            }
+            args.drain(i..(i + 2).min(args.len()));
+        }
+        if std::env::var_os("MICROKIT_SIMULATE_CRASH").is_some_and(|v| v == renderer.as_str()) {
+            // test hook: crash like a broken graphics driver does
+            unsafe { std::ptr::null_mut::<u8>().write_volatile(0) };
+        }
+        return run_child(args, &renderer);
+    }
+    if all.iter().any(|a| a == "-h" || a == "--help") {
+        println!("{USAGE}");
+        return std::process::ExitCode::SUCCESS;
+    }
+    supervise(all)
 }
 
 const APP_NAME: &str = "MicroKit-Emu";
@@ -161,62 +191,213 @@ fn run_gui(all: Vec<std::ffi::OsString>) -> eframe::Result {
     eframe::run_native(APP_NAME, options, Box::new(move |cc| Ok(Box::new(app::App::new(cc, opts)))))
 }
 
-/// Set once the first frame has been drawn: a failure before that is a
-/// graphics start-up problem, worth retrying with the other renderer.
+/// Set once the first frame has been drawn.
 pub static FIRST_FRAME: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
-/// The last panic message, for the error report.
-static PANIC_MESSAGE: std::sync::Mutex<String> = std::sync::Mutex::new(String::new());
+/// What a child process prints on stdout once its first frame is drawn.
+pub const READY_LINE: &str = "MICROKIT-EMU-READY";
 
-/// Run the window. If the default renderer (wgpu: Vulkan, Direct3D 12 or
-/// Metal) fails before the first frame, start again with OpenGL. A process
-/// can create its window event loop only once, so the retry is a new process.
-fn run_gui_with_fallback(all: Vec<std::ffi::OsString>) -> std::process::ExitCode {
-    let default_hook = std::panic::take_hook();
-    std::panic::set_hook(Box::new(move |info| {
-        if let Ok(mut m) = PANIC_MESSAGE.lock() {
-            *m = info.to_string();
-        }
-        default_hook(info);
-    }));
-    let forced = all.iter().any(|a| a == "--renderer");
-    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| run_gui(all.clone())));
-    let error = match result {
-        Ok(Ok(())) => return std::process::ExitCode::SUCCESS,
-        Ok(Err(e)) => e.to_string(),
-        Err(_) => PANIC_MESSAGE.lock().map(|m| m.clone()).unwrap_or_default(),
-    };
-    let started = FIRST_FRAME.load(std::sync::atomic::Ordering::Relaxed);
-    if !started && !forced {
-        if let Ok(exe) = std::env::current_exe() {
-            let mut args: Vec<std::ffi::OsString> = vec!["--renderer".into(), "glow".into()];
-            args.extend(all);
-            // the new process reports its own errors; this one can go
-            if std::process::Command::new(exe).args(args).spawn().is_ok() {
-                return std::process::ExitCode::SUCCESS;
-            }
+/// Called from the first frame: tell the supervisor the window works.
+pub fn signal_ready() {
+    use std::io::Write;
+    if !FIRST_FRAME.swap(true, std::sync::atomic::Ordering::Relaxed) {
+        let mut out = std::io::stdout();
+        let _ = writeln!(out, "{READY_LINE}");
+        let _ = out.flush();
+    }
+}
+
+/// The window runs in a child process (`--child`) and this process watches
+/// it. A graphics driver can crash the process outright (on Windows an
+/// access violation, 0xC0000005) before any error handling runs, so only a
+/// separate process can notice and try again with OpenGL. The renderer that
+/// worked is remembered, so a PC with a broken Vulkan/Direct3D 12 driver
+/// goes straight to OpenGL next time.
+fn supervise(all: Vec<std::ffi::OsString>) -> std::process::ExitCode {
+    use std::io::{BufRead, BufReader, Read};
+    use std::process::{Command, Stdio};
+
+    // a --renderer chosen by the user: use only that one
+    let mut user_args = Vec::new();
+    let mut forced: Option<String> = None;
+    let mut it = all.into_iter();
+    while let Some(a) = it.next() {
+        if a == "--renderer" {
+            forced = it.next().and_then(|r| r.into_string().ok());
+        } else {
+            user_args.push(a);
         }
     }
-    report_error(&error, started);
+    let remembered = remembered_renderer();
+    let order: Vec<String> = match (&forced, remembered.as_deref()) {
+        (Some(r), _) => vec![r.clone()],
+        (None, Some("glow")) => vec!["glow".into()],
+        _ => vec!["wgpu".into(), "glow".into()],
+    };
+    let Ok(exe) = std::env::current_exe() else {
+        return run_child(user_args, forced.as_deref().unwrap_or("wgpu"));
+    };
+
+    let mut attempts: Vec<String> = Vec::new();
+    for renderer in &order {
+        let child = Command::new(&exe)
+            .arg("--child")
+            .arg("--renderer")
+            .arg(renderer)
+            .args(&user_args)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn();
+        let mut child = match child {
+            Ok(c) => c,
+            Err(e) => {
+                attempts.push(format!("{}: could not start: {e}", renderer_name(renderer)));
+                continue;
+            }
+        };
+        // pass the child's error output through, keeping the end of it
+        let stderr = child.stderr.take();
+        let err_thread = std::thread::spawn(move || {
+            let mut text = String::new();
+            if let Some(mut e) = stderr {
+                let _ = e.read_to_string(&mut text);
+            }
+            eprint!("{text}");
+            text
+        });
+        let mut ready = false;
+        if let Some(out) = child.stdout.take() {
+            for line in BufReader::new(out).lines().map_while(Result::ok) {
+                if line.trim() == READY_LINE {
+                    ready = true;
+                    // the window works: remember OpenGL if the default failed
+                    if renderer == "glow" && forced.is_none() && !attempts.is_empty() {
+                        remember_renderer(Some("glow"));
+                    } else if renderer == "wgpu" {
+                        remember_renderer(None);
+                    }
+                } else {
+                    println!("{line}");
+                }
+            }
+        }
+        let status = child.wait();
+        let stderr_text = err_thread.join().unwrap_or_default();
+        let detail = last_lines(&stderr_text, 12);
+        match status {
+            Ok(st) if st.success() => return std::process::ExitCode::SUCCESS,
+            Ok(st) if ready => {
+                report_error(
+                    "MicroKit-Emu stopped unexpectedly.",
+                    &format!("{}\n\n{detail}", explain_status(&st)),
+                    false,
+                );
+                return std::process::ExitCode::FAILURE;
+            }
+            Ok(st) => attempts.push(
+                format!("{}: {}\n{detail}", renderer_name(renderer), explain_status(&st)).trim_end().to_string(),
+            ),
+            Err(e) => attempts.push(format!("{}: {e}", renderer_name(renderer))),
+        }
+    }
+    report_error("MicroKit-Emu could not open its window.", &attempts.join("\n\n"), true);
     std::process::ExitCode::FAILURE
+}
+
+fn renderer_name(r: &str) -> &'static str {
+    if r == "glow" { "OpenGL" } else { "Vulkan / Direct3D 12" }
+}
+
+fn last_lines(text: &str, n: usize) -> String {
+    let lines: Vec<&str> = text.lines().filter(|l| !l.trim().is_empty()).collect();
+    lines[lines.len().saturating_sub(n)..].join("\n")
+}
+
+/// The exit status in words, with the Windows crash codes people meet.
+fn explain_status(st: &std::process::ExitStatus) -> String {
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::ExitStatusExt;
+        if let Some(sig) = st.signal() {
+            let name = match sig {
+                11 => " (SIGSEGV: a crash, usually in the graphics driver)",
+                6 => " (SIGABRT)",
+                _ => "",
+            };
+            return format!("killed by signal {sig}{name}");
+        }
+    }
+    match st.code() {
+        Some(101) => "stopped with an error (exit code 101)".into(),
+        Some(c) => {
+            let hex = c as u32;
+            let what = match hex {
+                0xC0000005 => " (access violation: a crash, usually in the graphics driver)",
+                0xC00000FD => " (stack overflow)",
+                0xC0000135 => " (a DLL is missing)",
+                0xC0000409 => " (the program was stopped by a security check)",
+                _ => "",
+            };
+            if hex >= 0xC0000000 { format!("exit code 0x{hex:08X}{what}") } else { format!("exit code {c}{what}") }
+        }
+        None => "stopped".into(),
+    }
+}
+
+fn renderer_file() -> Option<std::path::PathBuf> {
+    eframe::storage_dir(APP_NAME).map(|d| d.join("renderer"))
+}
+
+fn remembered_renderer() -> Option<String> {
+    let s = std::fs::read_to_string(renderer_file()?).ok()?;
+    let s = s.trim().to_string();
+    (!s.is_empty()).then_some(s)
+}
+
+fn remember_renderer(r: Option<&str>) {
+    let Some(f) = renderer_file() else { return };
+    match r {
+        Some(r) => {
+            if let Some(d) = f.parent() {
+                let _ = std::fs::create_dir_all(d);
+            }
+            let _ = std::fs::write(f, r);
+        }
+        None => {
+            let _ = std::fs::remove_file(f);
+        }
+    }
+}
+
+/// The child: open the window with the given renderer. Errors go to stderr
+/// (the supervisor shows them); a panic exits with code 101.
+fn run_child(args: Vec<std::ffi::OsString>, renderer: &str) -> std::process::ExitCode {
+    let mut all: Vec<std::ffi::OsString> = vec!["--renderer".into(), renderer.into()];
+    all.extend(args);
+    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| run_gui(all))) {
+        Ok(Ok(())) => std::process::ExitCode::SUCCESS,
+        Ok(Err(e)) => {
+            eprintln!("{e}");
+            std::process::ExitCode::from(101)
+        }
+        Err(_) => std::process::ExitCode::from(101), // the panic message is already on stderr
+    }
 }
 
 /// Tell the user why the program stopped: a message box on Windows (it has
 /// no console), stderr elsewhere, and a log file next to the settings.
-fn report_error(error: &str, started: bool) {
-    let what = if started { "MicroKit-Emu stopped because of an error." } else { "MicroKit-Emu could not open its window." };
-    let mut text = format!("{what}\n\n{error}");
+fn report_error(what: &str, detail: &str, no_window: bool) {
+    let mut text = format!("{what}\n\n{detail}");
+    if no_window {
+        text.push_str(
+            "\n\nUpdating the graphics driver usually helps; in a virtual machine, enable 3D acceleration.",
+        );
+    }
     if let Some(dir) = eframe::storage_dir(APP_NAME) {
         let log = dir.join("error.log");
         if std::fs::create_dir_all(&dir).is_ok() && std::fs::write(&log, &text).is_ok() {
             text.push_str(&format!("\n\nThis report was saved to {}", log.display()));
         }
-    }
-    if !started {
-        text.push_str(
-            "\n\nBoth Vulkan/Direct3D 12 and OpenGL failed. Updating the graphics driver usually helps; \
-             in a virtual machine, enable 3D acceleration.",
-        );
     }
     eprintln!("{text}");
     #[cfg(windows)]

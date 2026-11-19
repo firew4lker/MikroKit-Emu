@@ -106,10 +106,15 @@ kept in `%APPDATA%\MicroKit-Emu\data`. Command-line options work from a
 Command Prompt as on Linux.
 
 Graphics: the program draws with Vulkan or Direct3D 12 (Metal on macOS).
-If that fails before the window appears (older drivers, some virtual
-machines), it restarts itself with OpenGL. If OpenGL fails too, it shows
-the reason in a message box and saves it to `error.log` in the settings
-folder.
+The window runs in a second process watched by the first, because some
+graphics drivers crash outright when the window opens. If that happens (or
+any other failure before the window appears), the program starts again
+with OpenGL and remembers that OpenGL works on that PC (in the file
+`renderer` in the settings folder). If OpenGL fails too, a message box
+shows the reason and it is saved to `error.log` in the settings folder.
+`--renderer wgpu` or `--renderer glow` chooses the method by hand;
+`--renderer wgpu` also makes the program try Vulkan/Direct3D 12 again, for
+example after a driver update.
 
 To build it yourself on Windows, install Rust and run `cargo build
 --release`. To cross-compile from Linux (needs the MinGW-w64 compiler):

@@ -81,10 +81,13 @@ newer and nothing else. The folder also has the README, the manuals and the
 `examples` folder.
 
 If the graphics driver can't run the program's normal drawing method
-(Vulkan or Direct3D 12), it restarts itself with OpenGL. If that fails too,
-a message explains why and the report is saved in
+(Vulkan or Direct3D 12), even if it crashes, the program starts again with
+OpenGL and remembers that OpenGL works on that PC. If that fails too, a
+message explains why and the report is saved in
 `%APPDATA%\MicroKit-Emu\data\error.log`. Updating the graphics driver
-usually helps; in a virtual machine, turn on 3D acceleration.
+usually helps; in a virtual machine, turn on 3D acceleration. After a
+driver update, start it once with `microkit-emu.exe --renderer wgpu` to use
+the normal method again.
 
 ### Building from the source code (Linux, Windows, macOS)
 
@@ -108,6 +111,7 @@ microkit-emu [options] [program.hex | program.asm | program.bin]
 | `--terminal` | start in terminal mode (jumper J16 on) |
 | `--keypad` | start in keypad mode (jumper J16 off) |
 | `--debug` | open the debug panel |
+| `--renderer wgpu` / `glow` | drawing method: Vulkan/Direct3D 12 or OpenGL (automatic by default) |
 | `program` | load this program into RAM at start-up |
 | `--assemble SRC [-o OUT] [--symbols]` | assemble a file without opening the window (see [section 7](#7-writing-your-own-programs)) |
 
