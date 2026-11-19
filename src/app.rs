@@ -1452,10 +1452,16 @@ impl App {
             (Color32::from_rgb(0x9c, 0xc2, 0x2c), Color32::from_rgb(0x1c, 0x2a, 0x0c), Color32::from_rgb(0x92, 0xb8, 0x27), Color32::from_rgb(0x1a, 0x24, 0x12))
         };
         let (cols, rows) = (lcd.size.cols, lcd.size.rows);
-        let dot = 3.2;
-        let pitch = dot + 0.6;
-        let cell_w = 5.0 * pitch + 3.0;
-        let cell_h = 8.0 * pitch + 4.0;
+        // Work in whole screen pixels so every dot and every gap is the same
+        // size (fractional positions round to uneven 1- and 2-pixel gaps).
+        let ppp = ui.ctx().pixels_per_point();
+        let dot_px = (3.0 * ppp).round().max(2.0);
+        let gap_px = (1.0 * ppp).round().max(1.0);
+        let pitch_px = dot_px + gap_px;
+        // between characters: one dot's width more than between dots
+        let cell_w_px = 5.0 * pitch_px + dot_px;
+        let cell_h_px = 8.0 * pitch_px + dot_px;
+        let (dot, pitch, cell_w, cell_h) = (dot_px / ppp, pitch_px / ppp, cell_w_px / ppp, cell_h_px / ppp);
         let pad = 14.0;
         let size = vec2(cols as f32 * cell_w + 2.0 * pad, rows as f32 * cell_h + 2.0 * pad);
         let (rect, _) = ui.allocate_exact_size(size + vec2(12.0, 12.0), Sense::hover());
@@ -1467,7 +1473,8 @@ impl App {
         let cursor = if lcd.display_on { lcd.cursor_at() } else { None };
         for r in 0..rows {
             for c in 0..cols {
-                let origin = glass.min + vec2(pad + c as f32 * cell_w, pad + r as f32 * cell_h);
+                let base = ((glass.min + vec2(pad, pad)).to_vec2() * ppp).round() / ppp;
+                let origin = pos2(base.x, base.y) + vec2(c as f32 * cell_w, r as f32 * cell_h);
                 let mut g = match lcd.char_at(r, c) {
                     Some(code) => lcd.glyph(code),
                     None => [0; 8],
@@ -1487,7 +1494,7 @@ impl App {
                     for x in 0..5 {
                         let lit = bits & (0x10 >> x) != 0;
                         let d = Rect::from_min_size(origin + vec2(x as f32 * pitch, y as f32 * pitch), vec2(dot, dot));
-                        p.rect_filled(d, 0.6, if lit { on } else { off });
+                        p.rect_filled(d, 0.0, if lit { on } else { off });
                     }
                 }
             }
