@@ -74,15 +74,16 @@ first things to check on a real board with a continuity tester.
     usual packages (DIP, TO-92, axial resistors). They are not taken from
     the original board.
 
-## Differences from the emulator
+## Differences from the emulator (fixed)
 
-The schematic shows two details that the MicroKit-Emu emulator does
-differently:
+The redraw showed two details that MicroKit-Emu did differently; both are
+fixed in the emulator now:
 
 - The X3 inputs are read through IC21 at **ports 3EH/3FH**, bits D0–D2
-  (enabled by /CS5). The emulator puts them on port 0FH, bits D1–D2. On
-  the board, port 0FH has only J16 on D0.
+  (enabled by /CS5). The emulator had them on port 0FH, which on the board
+  has only J16 on D0.
 - The 8155 RAM is decoded at **4000–47FF** (A8–A10 not decoded), so it
-  appears 8 times. The emulator repeats it only up to 43FF.
+  appears 8 times. The emulator repeated it only up to 43FF.
 
-The monitor ROM uses neither, so the emulator runs it correctly either way.
+The emulator's I/O decoding now follows the schematic exactly. The monitor
+ROM uses neither detail, so it ran correctly before too.
