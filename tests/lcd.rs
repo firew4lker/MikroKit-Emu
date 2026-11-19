@@ -41,7 +41,7 @@ fn run_asm_example(size: mikrokit_emu::lcd::LcdSize) -> Machine {
 fn asm_example_on_16x2() {
     let m = run_asm_example(LCD_16X2);
     let lcd = m.board.lcd.as_ref().unwrap();
-    assert_eq!(lcd.row_text(0), "MikroKit-Emu    ");
+    assert_eq!(lcd.row_text(0), "Mikrokit-Emu    ");
     assert_eq!(lcd.row_text(1), "8085 + HD44780  ");
     assert_eq!(lcd.early_writes, 0, "the delays are long enough");
     assert_eq!(display_text(&m.display()), "- 80|85", "returned to the monitor");
@@ -51,7 +51,7 @@ fn asm_example_on_16x2() {
 fn asm_example_on_20x4() {
     let m = run_asm_example(LCD_20X4);
     let lcd = m.board.lcd.as_ref().unwrap();
-    assert_eq!(lcd.row_text(0), "MikroKit-Emu        ");
+    assert_eq!(lcd.row_text(0), "Mikrokit-Emu        ");
     assert_eq!(lcd.row_text(1), "8085 + HD44780      ");
     assert_eq!(lcd.row_text(2), "Row 3 of a 20x4     ");
     assert_eq!(lcd.row_text(3), "Row 4: 0123456789   ");

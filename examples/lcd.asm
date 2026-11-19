@@ -105,7 +105,7 @@ DELAY:  DCX B
         JNZ DELAY
         RET
 
-LINE1:  DB "MikroKit-Emu", 0
+LINE1:  DB "Mikrokit-Emu", 0
 LINE2:  DB "8085 + HD44780", 0
 LINE3:  DB "Row 3 of a 20x4", 0
 LINE4:  DB "Row 4: 0123456789", 0
