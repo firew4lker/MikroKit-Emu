@@ -179,7 +179,7 @@ fn keypad_download_over_db9_2() {
 fn crt_monitor_session() {
     let mut m = boot(true);
     let out = term_out(&mut m);
-    assert!(out.contains("MICROKIT MONITOR Ver. 5.12"), "got {out:?}");
+    assert!(out.contains("MICROKIT MONITOR Ver. 5.12"), "got {out:?}");  // the untouched EPROM from "Original Documentation"
     assert_eq!(display_text(&m.display()), "Crt |  ");
 
     let img = Image::from_bin(&[0x3E, 0x47, 0xCF], 0x2000);
@@ -267,7 +267,10 @@ fn outputs_example_drives_all_ports() {
 #[test]
 fn builtin_roms() {
     use mikrokit_emu::roms;
-    assert!(roms::ORIGINAL == &rom()[..], "roms/monitor-5.12.bin is the kit's EPROM");
+    // the kit's EPROM, except the sign-on text: MICROKIT -> MIKROKIT
+    let diff: Vec<usize> = (0..0x2000).filter(|&i| roms::ORIGINAL[i] != rom()[i]).collect();
+    assert_eq!(diff.len(), 1, "roms/monitor-5.12.bin differs from the EPROM at {diff:04X?}");
+    assert_eq!(&roms::ORIGINAL[diff[0] - 2..diff[0] + 6], b"MIKROKIT");
     for (name, _, image) in roms::BUILTIN {
         assert_eq!(image.len(), 0x2000, "{name}");
         let mut m = Machine::new();

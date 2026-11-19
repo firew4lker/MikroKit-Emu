@@ -1,7 +1,7 @@
 
 ;***************************************************************************
 ;
-;	            MICROKIT MONITOR VER 5.12
+;	            MIKROKIT MONITOR VER 5.12
 ;
 ;***************************************************************************
 ;
@@ -20,7 +20,7 @@
 
 ; ABSTRACT 2 SEPT 91
 ;
-; THIS PROGRAM IS A SMALL MONITOR FOR THE MICROKIT AND PROVIDES A MINIMUM 
+; THIS PROGRAM IS A SMALL MONITOR FOR THE MIKROKIT AND PROVIDES A MINIMUM 
 ; LEVEL OF UTILITY FUNCTIONS FOR THE USER.
 ; THIS MONITOR PROGRAM WORKS EITHER WITH THE ON BOARD KEYBOARD/LED DISPLAY 
 ; OR INTER-ACTIVE WITH A TERMINAL.
@@ -42,7 +42,7 @@
 ;       11)   LAYOUT OF RAM USAGE
 ;***************************************************************************
 
-; THE KEYBOARD OF MICROKIT HAS THE FOLLOWING APPEARANCE
+; THE KEYBOARD OF MIKROKIT HAS THE FOLLOWING APPEARANCE
 ;   ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐
 ;   │RESET │ │VECT  │ │ C    │ │ D    │ │ E    │ │ F    │	
 ;   │      │ │INTR  │ │      │ │      │ │      │ │      │
@@ -188,7 +188,7 @@ NBITS EQU 09H      ; Number of data bits forming an ASCII character.
 ;***************************************************************************
 ;***************************************************************************
 ;
-; MICROKIT MONITOR PROGRAM
+; MIKROKIT MONITOR PROGRAM
 ;
 ;***************************************************************************
 ;***************************************************************************
@@ -1301,7 +1301,7 @@ LETRT EQU $-DSPTB
 
 ;***************************************************************************
 
-; KEYBOARD/DI SPLAY MONITOR MESSAGES TO MICROKIT'S DISPLAY
+; KEYBOARD/DI SPLAY MONITOR MESSAGES TO MIKROKIT'S DISPLAY
 
 BLNKS: DB BLANK,BLANK,BLANK,BLANK ; For address or data field.
 ERMSG: DB BLANK,LETRE,LETRR,LETRR ; Error message for address field.
@@ -1363,7 +1363,7 @@ NUMRG EQU ($-RGTBL)               ; Number of entries in save location table.
 
 ; ABSTRACT
 ; ========
-; THIS PROGRAM RUNS ON THE MICROKIT BOARD AND IS DESIGNED TO 
+; THIS PROGRAM RUNS ON THE MIKROKIT BOARD AND IS DESIGNED TO 
 ; PROVIDE THE USER WITH A MINIMAL MONITOR. BY USING THIS PROGRAM 
 ; THE USER CAN EXAMINE AND CHANGE MEMORY OR CPU REGISTERS, LOAD 
 ; A PROGRAM (IN ABSOLUTE HEX) INTO RAM, AND EXECUTE INSTRUCTIONS 
@@ -1425,7 +1425,7 @@ NUMRG EQU ($-RGTBL)               ; Number of entries in save location table.
 ;*************************************************************************** 
 ; BEGINNING OF CRT MONITOR.
 ; DISPLAY SIGN-ON MESSAGE AT CRT.
-; WHEN YOU ARE IN THE CRT MONITOR THE MICROKIT'S DISPLAY SHOWS 
+; WHEN YOU ARE IN THE CRT MONITOR THE MIKROKIT'S DISPLAY SHOWS 
 ; THE LETTERS "Crt" AT THE ADDRESS FIELD.
 
 CRTMON:
@@ -1701,7 +1701,7 @@ IN10:
 ; CALLS       : DISPLMES, GETFL 
 ; DESTROYS    : A,B,C,D,E,H,L,F/F
 ; DESCRIPTION : LOAD_CMD IMPLEMENTS THE LOADING OF A HEX FILE.
-;               IT LOADS THE CONTENTS OF THE FILE IN MICROKIT'S
+;               IT LOADS THE CONTENTS OF THE FILE IN MIKROKIT'S
 ;               RAM AND GIVES CONTROL TO CRT MONITOR PROGRAM.
 
 LOAD_CMD:
@@ -2870,7 +2870,7 @@ VALDL:
 CONAD:   DB LETRC,LETRR,LETRT,BLANK    ; When you are in CRT
 CONDAT:  DB BLANK,BLANK                ; monitor display 'Crt'.
 
-SIGN_ON: DB CR,LF,LF," MICROKIT MONITOR Ver. 5.12 + TINY BASIC ",CR,LF,00
+SIGN_ON: DB CR,LF,LF," MIKROKIT MONITOR Ver. 5.12 + TINY BASIC ",CR,LF,00
 
 CADR:
     DW 0             ; Dummy character.
@@ -3521,7 +3521,7 @@ REDNEX:
     
 ;***************************************************************************
 ;
-;          TAPE PROGRAM MESSAGES TO MICROKIT'S DISPLAY
+;          TAPE PROGRAM MESSAGES TO MIKROKIT'S DISPLAY
 ;
 ;***************************************************************************
 
@@ -3553,9 +3553,9 @@ MES9: DB CR,LF," READING ERROR",CR,LF,00
 ; DOWNLOAD PROGRAM AND SUBROUTINES
 ;
 ;******************************************************************************
-; THE CONNECTION BETWEEN THE IBM-PC COMPUTER AND "MICROKIT" IS MADE 
+; THE CONNECTION BETWEEN THE IBM-PC COMPUTER AND "MIKROKIT" IS MADE 
 ; THROUGHT RS232 FROM A SERIAL PORT OF THE IBM-PC TO ONE OF THE SERIAL 
-; PORTS OF MICROKIT DB9-1 OR DB9-2.
+; PORTS OF MIKROKIT DB9-1 OR DB9-2.
 ; THE PROGRAM FINDS THE ACTIVE SERIAL PORT FROM THE STORED VALUE IN DPORT.
 ; TO SELECT THE ACTIVE PORT RUN THE DPORT ROUTINE.
 ; THE TRANSMISSION SPEED IS ALLWAYS 9600 BPS, 8 DATA BITS, NO PARITY, 2 STOP. 
@@ -3567,9 +3567,9 @@ MES9: DB CR,LF," READING ERROR",CR,LF,00
 ; CALLS      : CLEAR, GETFL,OUTDS,LDELAY 
 ; DESTROYS   : A,B,C,D,E,H,L,F/F
 ; DESCRIPTION: THIS IS THE MAIN ROUTINE FOR DOWNLOADING A .HEX 
-;              FILE TO MICROKIT WHEN KEYBOARD MONITOR IS USED.
+;              FILE TO MIKROKIT WHEN KEYBOARD MONITOR IS USED.
 ;              THE PROGRAM LOADS THE CONTENTS OF .HEX FILE IN
-;              MICROKIT'S MEMORY AND GIVES CONTROL TO KEYBOARD
+;              MIKROKIT'S MEMORY AND GIVES CONTROL TO KEYBOARD
 ;              MONITOR PROGRAM.
 
 
@@ -3800,10 +3800,10 @@ CI5:
 
 ; FUNCTION   : OUTDS - DISPLAY OUTPUT 
 ; INPUTS     : NOTHING
-; OUTPUTS    : WRITES CHARACTERS TO MICROKIT'S DISPLAY 
+; OUTPUTS    : WRITES CHARACTERS TO MIKROKIT'S DISPLAY 
 ; CALLS      : NONE 
 ; DESTROYS   : A,C,H,L,F/F
-; DESCRIPTION: THE ROUTINE OUTPUTS A MESSAGE AT THE MICROKIT'S DISPLAY. 
+; DESCRIPTION: THE ROUTINE OUTPUTS A MESSAGE AT THE MIKROKIT'S DISPLAY. 
 
 OUTDS:
     MVI C,04H        ; Number of characters to display.
@@ -3825,7 +3825,7 @@ HLBIT: DB 09H,01H    ; Wait value for half bit time. 9600 bits/sec.
 BTIME: DB 12H,01H    ; Wait value for one bit time. 9600 bits/sec.
 
 ;*************************************»************************************* 
-;            DOWNLOAD PROGRAM MESSAGES TO MICROKIT'S DISPLAY
+;            DOWNLOAD PROGRAM MESSAGES TO MIKROKIT'S DISPLAY
 
 DMES: DB 83H,0F3H,77H,0E5H   ; Message "LOAd"
 ENDM: DB 97H,45H,0E5H,00H    ; Message "End"
@@ -3893,7 +3893,7 @@ PORT_EXIT:
     JMP CMMND        ; Give control to keyboard monitor.
     
 ;*************************************************************************** 
-;            SELECT PORT ROUTINE MESSAGES TO MICROKIT'S DISPLAY
+;            SELECT PORT ROUTINE MESSAGES TO MIKROKIT'S DISPLAY
 
 PMES1: DB LETRP,ZERO,LETRR,LETRT ; "POrt"
 

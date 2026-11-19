@@ -36,7 +36,8 @@ registers, run programs one instruction at a time, load programs over a
 serial line and save them on tape.
 
 **MikroKit-Emu** reproduces the board on your computer. It runs the
-original monitor program from the kit's EPROM unchanged, with the CPU
+original monitor program from the kit's EPROM (only its sign-on text is
+changed, to "MIKROKIT MONITOR"), with the CPU
 running at the board's real speed (3.072 MHz, counted clock cycle by clock
 cycle), so programs behave as they do on the real kit, including their
 timing.

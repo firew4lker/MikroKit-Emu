@@ -85,7 +85,7 @@ fn keypad_monitor_unchanged() {
 fn terminal_monitor_unchanged_and_help_lists_b() {
     let mut m = boot(true);
     let t = out(&mut m);
-    assert!(t.contains("MICROKIT MONITOR Ver. 5.12 + TINY BASIC"), "{t:?}");
+    assert!(t.contains("MIKROKIT MONITOR Ver. 5.12 + TINY BASIC"), "{t:?}");
     m.board.poke(0x2000, 0x3E);
     m.board.poke(0x2001, 0x47);
     m.board.poke(0x2002, 0xCF);

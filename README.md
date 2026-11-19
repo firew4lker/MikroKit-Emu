@@ -72,7 +72,8 @@ Two monitor ROMs are built into the executable, so it needs no other
 files. Choose one with **File → Monitor ROM**:
 
 - **Original monitor 5.12** (the default): the kit's own EPROM,
-  `roms/monitor-5.12.bin`.
+  `roms/monitor-5.12.bin`. Only its sign-on text is changed, to
+  "MIKROKIT MONITOR" (the EPROM says "MICROKIT").
 - **Monitor 5.12 + Tiny BASIC**: `roms/monitor-basic.bin` (see below).
 - **Load from file…**: your own ROM (`.bin`, `.hex`, or `.asm` source,
   which is assembled on the fly). The last file you used stays in the menu.
