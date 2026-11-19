@@ -1760,19 +1760,19 @@ impl App {
         // Work in whole screen pixels so every dot and every gap is the same
         // size (fractional positions round to uneven 1- and 2-pixel gaps).
         let ppp = ui.ctx().pixels_per_point();
-        let dot_px = (3.0 * ppp).round().max(2.0);
+        let dot_px = (2.0 * ppp).round().max(2.0);
         let gap_px = (1.0 * ppp).round().max(1.0);
         let pitch_px = dot_px + gap_px;
         // between characters: one dot's width more than between dots
         let cell_w_px = 5.0 * pitch_px + dot_px;
         let cell_h_px = 8.0 * pitch_px + dot_px;
         let (dot, pitch, cell_w, cell_h) = (dot_px / ppp, pitch_px / ppp, cell_w_px / ppp, cell_h_px / ppp);
-        let pad = 14.0;
+        let pad = 10.0;
         let size = vec2(cols as f32 * cell_w + 2.0 * pad, rows as f32 * cell_h + 2.0 * pad);
-        let (rect, _) = ui.allocate_exact_size(size + vec2(12.0, 12.0), Sense::hover());
+        let (rect, _) = ui.allocate_exact_size(size + vec2(8.0, 8.0), Sense::hover());
         let p = ui.painter_at(rect);
         p.rect_filled(rect, 6.0, frame);
-        let glass = rect.shrink(6.0);
+        let glass = rect.shrink(4.0);
         p.rect_filled(glass, 3.0, bg);
         let blink_full = lcd.blink_on && (now as f64 / CPU_HZ as f64 / 0.2048) as u64 % 2 == 0;
         let cursor = if lcd.display_on { lcd.cursor_at() } else { None };
