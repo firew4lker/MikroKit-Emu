@@ -15,13 +15,19 @@ builds on Linux, Windows and macOS.
 cargo run --release
 ```
 
-The emulator looks for `Monitor Program.BIN` next to the executable, in its
-parent folders, and in the working folder (so running it from this folder
-finds `../Monitor Program.BIN`). Otherwise use **File → Load monitor ROM**
-(`.bin`, `.hex`, or the `.asm` source, which is assembled on the fly).
+Two monitor ROMs are built into the executable, so it needs no other
+files. Choose one with **File → Monitor ROM**:
+
+- **Original monitor 5.12** (the default): the kit's own EPROM,
+  `roms/monitor-5.12.bin`.
+- **Monitor 5.12 + Tiny BASIC**: `roms/monitor-basic.bin` (see below).
+- **Load from file…**: your own ROM (`.bin`, `.hex`, or `.asm` source,
+  which is assembled on the fly). The last file you used stays in the menu.
+
+The choice is remembered, and switching resets the kit.
 
 ```
-microkit-emu [--rom PATH] [--terminal | --keypad] [--debug] [program.hex|.asm|.bin]
+microkit-emu [--rom original|basic|PATH] [--terminal | --keypad] [--debug] [program.hex|.asm|.bin]
 ```
 
 ## Using it
@@ -74,11 +80,14 @@ See `examples/` for small programs.
 BASIC 2.0** (Li-Chen Wang, Roger Rauskolb, 1976, "@COPYLEFT ALL WRONGS
 RESERVED"), squeezed into the ROM's free areas (18E1H–1FFFH and
 10FBH–12FFH). `roms/monitor-basic.bin` is the same thing as an 8 KB image,
-ready for a 2764 EPROM. The keypad monitor, the terminal monitor and the
+ready for a 2764 EPROM. Both images are built into the emulator; after
+rebuilding the `.bin`, rebuild the emulator too. The keypad monitor, the terminal monitor and the
 programs at 1000H/1300H/1600H/1800H are unchanged.
 
+Pick *File → Monitor ROM → Monitor 5.12 + Tiny BASIC*, or:
+
 ```bash
-cargo run --release -- --terminal --rom roms/monitor-basic.bin
+cargo run --release -- --terminal --rom basic
 ```
 
 Type `B` at the terminal monitor's `.` prompt. BASIC uses the user RAM

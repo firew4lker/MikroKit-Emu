@@ -9,7 +9,8 @@ Microkit 8085 trainer emulator
 usage: microkit-emu [options] [program.hex|.asm|.bin]
 
 options:
-  --rom PATH     monitor ROM to use (.bin, .hex or .asm)
+  --rom ROM      monitor ROM: original (the default), basic
+                 (monitor + Tiny BASIC), or a file (.bin, .hex, .asm)
   --terminal     start with J16 on (terminal monitor)
   --keypad       start with J16 off (keypad monitor)
   --debug        show the debug panel
@@ -100,7 +101,14 @@ fn run_gui(all: Vec<std::ffi::OsString>) -> eframe::Result {
     let mut args = all.into_iter();
     while let Some(a) = args.next() {
         match a.to_str() {
-            Some("--rom") => opts.rom = args.next().map(Into::into),
+            Some("--rom") => {
+                opts.rom = args.next().map(|r| match r.to_str() {
+                    Some(n) if microkit_emu::roms::BUILTIN.iter().any(|(b, _, _)| *b == n) => {
+                        app::RomChoice::Builtin(n.into())
+                    }
+                    _ => app::RomChoice::File(r.into()),
+                })
+            }
             Some("--terminal") => opts.terminal = Some(true),
             Some("--keypad") => opts.terminal = Some(false),
             Some("--debug") => opts.debug = true,

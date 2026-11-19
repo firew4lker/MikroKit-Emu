@@ -6,6 +6,7 @@ pub mod disasm;
 pub mod loader;
 pub mod machine;
 pub mod periph;
+pub mod roms;
 pub mod segments;
 pub mod tape;
 pub mod terminal;

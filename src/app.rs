@@ -9,6 +9,7 @@ use microkit_emu::asm;
 use microkit_emu::disasm::disasm;
 use microkit_emu::loader::{self, Image, parse_addr};
 use microkit_emu::machine::{CPU_HZ, J17_CLOCKS, Jumpers, Key, Machine, monitor};
+use microkit_emu::roms;
 use microkit_emu::segments;
 use microkit_emu::tape::{Tape, TapeState};
 use microkit_emu::terminal::Terminal;
@@ -34,7 +35,9 @@ const KEYPAD: [[Key; 6]; 4] = [
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 struct Settings {
-    rom_path: Option<PathBuf>,
+    rom: RomChoice,
+    /// The last external ROM file, kept so the menu can switch back to it.
+    rom_file: Option<PathBuf>,
     last_program: Option<PathBuf>,
     last_bin_addr: String,
     jumpers: Jumpers,
@@ -45,6 +48,21 @@ struct Settings {
     show_tape: bool,
     show_ports: bool,
     theme: Theme,
+}
+
+/// Which monitor ROM is in the socket.
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub enum RomChoice {
+    /// One of `roms::BUILTIN`, by its short name.
+    Builtin(String),
+    /// A file the user picked (.bin, .hex or .asm).
+    File(PathBuf),
+}
+
+impl Default for RomChoice {
+    fn default() -> Self {
+        RomChoice::Builtin("original".into())
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -77,7 +95,8 @@ enum TermAction {
 impl Default for Settings {
     fn default() -> Self {
         Settings {
-            rom_path: None,
+            rom: RomChoice::Builtin("original".into()),
+            rom_file: None,
             last_program: None,
             last_bin_addr: "2000".into(),
             jumpers: Jumpers::default(),
@@ -149,7 +168,7 @@ pub struct App {
 /// Command-line options.
 #[derive(Default)]
 pub struct Options {
-    pub rom: Option<PathBuf>,
+    pub rom: Option<RomChoice>,
     pub program: Option<PathBuf>,
     pub terminal: Option<bool>,
     pub debug: bool,
@@ -196,12 +215,11 @@ impl App {
         cc.egui_ctx.add_plugin(SelectionWatcher(app.selected_text.clone()));
         app.m.board.jumpers = app.settings.jumpers.clone();
         app.m.apply_jumpers();
-        let rom = opts.rom.clone().or_else(|| app.settings.rom_path.clone().filter(|p| p.exists())).or_else(find_default_rom);
-        match rom {
-            Some(p) => app.load_rom(&p),
-            None => {
-                app.status = "No monitor ROM loaded. Use File → Load monitor ROM.".into();
-            }
+        let rom = opts.rom.clone().unwrap_or_else(|| app.settings.rom.clone());
+        app.select_rom(rom);
+        if !app.rom_loaded {
+            // a saved external file that has gone away: fall back to the original
+            app.select_rom(RomChoice::default());
         }
         if let Some(p) = opts.program {
             // let the monitor finish its cold start first, so the GO address sticks
@@ -216,6 +234,33 @@ impl App {
     fn error(&mut self, title: &str, text: String) {
         self.status = format!("{title}: {}", text.lines().next().unwrap_or(""));
         self.message = Some((title.to_string(), text));
+    }
+
+    fn select_rom(&mut self, choice: RomChoice) {
+        match &choice {
+            RomChoice::Builtin(name) => {
+                let Some((_, label, image)) = roms::BUILTIN.iter().find(|(n, _, _)| n == name) else {
+                    return self.error("Unknown built-in ROM", name.clone());
+                };
+                self.install_rom(image, choice.clone());
+                self.status = format!("Monitor ROM: {label} (built in)");
+            }
+            RomChoice::File(p) => {
+                let p = p.clone();
+                self.load_rom(&p);
+            }
+        }
+    }
+
+    fn install_rom(&mut self, image: &[u8], choice: RomChoice) {
+        self.m.load_rom(image);
+        self.m.reset();
+        self.rom_loaded = true;
+        self.running = true;
+        if let RomChoice::File(p) = &choice {
+            self.settings.rom_file = Some(p.clone());
+        }
+        self.settings.rom = choice;
     }
 
     fn load_rom(&mut self, path: &Path) {
@@ -238,14 +283,48 @@ impl App {
         })();
         match result {
             Ok(rom) => {
-                self.m.load_rom(&rom);
-                self.m.reset();
-                self.rom_loaded = true;
-                self.running = true;
-                self.settings.rom_path = Some(path.to_path_buf());
+                self.install_rom(&rom, RomChoice::File(path.to_path_buf()));
                 self.status = format!("Monitor ROM loaded from {}", file_name(path));
             }
             Err(e) => self.error("Couldn't load the ROM", e),
+        }
+    }
+
+    /// File → Monitor ROM: the built-in ROMs, the last external file, and
+    /// "Load from file…". Choosing one puts it in the socket and resets.
+    fn rom_menu(&mut self, ui: &mut egui::Ui) {
+        let mut pick = None;
+        for (name, label, _) in roms::BUILTIN {
+            let this = RomChoice::Builtin(name.into());
+            if ui.radio(self.settings.rom == this, label).clicked() {
+                pick = Some(this);
+            }
+        }
+        if let Some(f) = self.settings.rom_file.clone() {
+            let this = RomChoice::File(f.clone());
+            if ui
+                .radio(self.settings.rom == this, format!("File: {}", file_name(&f)))
+                .on_hover_text(f.display().to_string())
+                .clicked()
+            {
+                pick = Some(this);
+            }
+        }
+        ui.separator();
+        if ui.button("Load from file…").clicked() {
+            ui.close();
+            if let Some(p) = rfd::FileDialog::new()
+                .set_title("Load monitor ROM")
+                .add_filter("ROM image or source", &["bin", "rom", "hex", "asm", "a85"])
+                .add_filter("All files", &["*"])
+                .pick_file()
+            {
+                self.load_rom(&p);
+            }
+        }
+        if let Some(c) = pick {
+            ui.close();
+            self.select_rom(c);
         }
     }
 
@@ -286,7 +365,7 @@ impl App {
                 "Program overlaps the ROM",
                 format!(
                     "Address {:04X} is in the EPROM (0000–1FFF). Load user programs into RAM \
-                     (2000–3FFF), or use File → Load monitor ROM to replace the monitor.",
+                     (2000–3FFF), or use File → Monitor ROM → Load from file… to replace the monitor.",
                     rom[0]
                 ),
             );
@@ -537,17 +616,7 @@ impl App {
                     self.save_dialog = Some(SaveDialog { start: "2000".into(), end: "20FF".into() });
                 }
                 ui.separator();
-                if ui.button("Load monitor ROM…").clicked() {
-                    ui.close();
-                    if let Some(p) = rfd::FileDialog::new()
-                        .set_title("Load monitor ROM")
-                        .add_filter("ROM image or source", &["bin", "rom", "hex", "asm", "a85"])
-                        .add_filter("All files", &["*"])
-                        .pick_file()
-                    {
-                        self.load_rom(&p);
-                    }
-                }
+                ui.menu_button("Monitor ROM", |ui| self.rom_menu(ui));
                 ui.separator();
                 if ui.button("Quit").clicked() {
                     ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
@@ -1512,8 +1581,11 @@ Terminal (set J16 on, then RS): click the terminal and type.
 
 Theme: View → Follow the system / Dark / Light.
 
-Tiny BASIC (needs the ROM roms/monitor-basic.bin, J16 on):
-  File → Load monitor ROM, press RS, type B in the terminal.
+Monitor ROM: File → Monitor ROM chooses the original monitor
+  5.12 (default), the monitor + Tiny BASIC, or a file of your own.
+
+Tiny BASIC (ROM 'Monitor 5.12 + Tiny BASIC', J16 on):
+  press RS, type B in the terminal.
   BYE returns to the monitor; B again keeps your program.
   Send HEX → DB9-1 with a .bas file types the program in.
 
@@ -1758,27 +1830,4 @@ fn image_to_hex(img: &Image) -> String {
     }
     s.push_str(":00000001FF\r\n");
     s
-}
-
-/// Look for "Monitor Program.BIN" next to the executable, its parents, and
-/// the working directory.
-fn find_default_rom() -> Option<PathBuf> {
-    let names = ["Monitor Program.BIN", "monitor.bin", "Monitor Program.bin"];
-    let mut dirs: Vec<PathBuf> = Vec::new();
-    if let Ok(exe) = std::env::current_exe() {
-        let mut d = exe.parent().map(Path::to_path_buf);
-        for _ in 0..5 {
-            if let Some(dir) = d {
-                dirs.push(dir.clone());
-                d = dir.parent().map(Path::to_path_buf);
-            }
-        }
-    }
-    if let Ok(cwd) = std::env::current_dir() {
-        dirs.push(cwd.clone());
-        if let Some(p) = cwd.parent() {
-            dirs.push(p.to_path_buf());
-        }
-    }
-    dirs.iter().flat_map(|d| names.iter().map(move |n| d.join(n))).find(|p| p.exists())
 }

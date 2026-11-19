@@ -263,3 +263,17 @@ fn outputs_example_drives_all_ports() {
     assert_eq!(m.board.pio.out, [0x55, 0xF0, 0x2A]);
     assert_eq!(display_text(&m.display()), "- 80|85", "returned with RST 1");
 }
+
+#[test]
+fn builtin_roms() {
+    use microkit_emu::roms;
+    assert!(roms::ORIGINAL == &rom()[..], "roms/monitor-5.12.bin is the kit's EPROM");
+    for (name, _, image) in roms::BUILTIN {
+        assert_eq!(image.len(), 0x2000, "{name}");
+        let mut m = Machine::new();
+        m.load_rom(image);
+        m.reset();
+        m.run_for(100 * 3072, &[]);
+        assert_eq!(display_text(&m.display()), "- 80|85", "{name} boots");
+    }
+}
