@@ -20,7 +20,7 @@ optdepends=(
 )
 options=('!lto')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('ecee2fcc521b0fd214d9b8e691be2745a693e9271551181d947c93044518ea80')
+sha256sums=('ac7eb3addf110682414c428597100b88357ae1c07390c8645f3745e187a52c9e')
 
 prepare() {
   cd "MikroKit-Emu-$pkgver"
