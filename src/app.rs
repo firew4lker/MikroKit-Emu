@@ -574,44 +574,9 @@ impl App {
 
     /// The assembly editor under the keypad.
     fn editor(&mut self, ui: &mut egui::Ui) {
+        // title, with the result of the last assembly next to it
         ui.horizontal(|ui| {
             ui.label(RichText::new(tr("Assembly editor")).strong());
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                let mut pick = None;
-                egui::ComboBox::from_id_salt("editor_examples")
-                    .selected_text(tr("Examples"))
-                    .width(90.0)
-                    .show_ui(ui, |ui| {
-                        if ui.selectable_label(false, tr("New (empty program)")).clicked() {
-                            pick = Some(("", EDITOR_TEMPLATE));
-                        }
-                        for (name, text) in EDITOR_EXAMPLES {
-                            if ui.selectable_label(false, name).clicked() {
-                                pick = Some((name, text));
-                            }
-                        }
-                    });
-                if let Some((name, text)) = pick {
-                    self.settings.editor_text = text.to_string();
-                    self.settings.editor_path = (!name.is_empty()).then(|| PathBuf::from(name));
-                    self.editor_result = None;
-                }
-                if ui.button("💾").on_hover_text(tr("Save…")).clicked() {
-                    self.editor_save();
-                }
-                if ui.button("📂").on_hover_text(tr("Open…")).clicked() {
-                    self.editor_open();
-                }
-            });
-        });
-        ui.horizontal(|ui| {
-            if ui
-                .button(tr("▶ Assemble & load"))
-                .on_hover_text(tr("Assemble the code, load it into RAM and set the GO address (Ctrl+Enter)"))
-                .clicked()
-            {
-                self.editor_assemble();
-            }
             match &self.editor_result {
                 Some(Ok(msg)) => {
                     let short = msg.splitn(2, '→').nth(1).map(str::trim).unwrap_or(msg).to_string();
@@ -624,6 +589,40 @@ impl App {
                     );
                 }
                 None => {}
+            }
+        });
+        // all the buttons on one row, from the left, so they stay put when the panel is resized
+        ui.horizontal(|ui| {
+            if ui
+                .button(tr("▶ Assemble & load"))
+                .on_hover_text(tr("Assemble the code, load it into RAM and set the GO address (Ctrl+Enter)"))
+                .clicked()
+            {
+                self.editor_assemble();
+            }
+            if ui.button("📂").on_hover_text(tr("Open…")).clicked() {
+                self.editor_open();
+            }
+            if ui.button("💾").on_hover_text(tr("Save…")).clicked() {
+                self.editor_save();
+            }
+            let mut pick = None;
+            egui::ComboBox::from_id_salt("editor_examples")
+                .selected_text(tr("Examples"))
+                .show_ui(ui, |ui| {
+                    if ui.selectable_label(false, tr("New (empty program)")).clicked() {
+                        pick = Some(("", EDITOR_TEMPLATE));
+                    }
+                    for (name, text) in EDITOR_EXAMPLES {
+                        if ui.selectable_label(false, name).clicked() {
+                            pick = Some((name, text));
+                        }
+                    }
+                });
+            if let Some((name, text)) = pick {
+                self.settings.editor_text = text.to_string();
+                self.settings.editor_path = (!name.is_empty()).then(|| PathBuf::from(name));
+                self.editor_result = None;
             }
         });
 
