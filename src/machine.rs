@@ -90,6 +90,8 @@ pub struct Board {
     /// Inputs on connector X3 (pins 1-3 → bits 0-2), read through IC21 at
     /// ports 3EH/3FH. Open inputs read as 1.
     pub x3_in: u8,
+    /// HD44780 LCD on port B (PB2 RS, PB3 E, PB4-PB7 D4-D7), if connected.
+    pub lcd: Option<crate::lcd::Hd44780>,
     trap_edge: bool,
 }
 
@@ -107,6 +109,7 @@ impl Board {
             sid_level: true,
             tape: Tape::default(),
             x3_in: 0b111,
+            lcd: None,
             trap_edge: false,
         }
     }
@@ -134,6 +137,15 @@ impl Board {
                 true
             }
             _ => false,
+        }
+    }
+
+    /// Port B pins as the LCD sees them (only while port B is an output).
+    fn feed_lcd(&mut self, now: u64) {
+        if let Some(lcd) = &mut self.lcd {
+            if self.pio.csr & 0x02 != 0 {
+                lcd.pins(self.pio.out[1], now);
+            }
         }
     }
 
@@ -222,7 +234,13 @@ impl Bus for Board {
                     self.kbd.write_data(v)
                 }
             }
-            Some(Io::Pio) => self.pio.write_io(port & 7, v, now),
+            Some(Io::Pio) => {
+                self.pio.write_io(port & 7, v, now);
+                // the command register (port B direction) or port B itself
+                if matches!(port & 7, 0 | 2) {
+                    self.feed_lcd(now);
+                }
+            }
             _ => {}
         }
     }

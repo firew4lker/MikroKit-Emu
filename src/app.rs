@@ -50,6 +50,28 @@ struct Settings {
     show_ports: bool,
     theme: Theme,
     language: Language,
+    lcd: LcdChoice,
+    show_lcd: bool,
+    lcd_blue: bool,
+}
+
+/// Which LCD module is plugged into port B.
+#[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+enum LcdChoice {
+    #[default]
+    None,
+    L16x2,
+    L20x4,
+}
+
+impl LcdChoice {
+    fn size(self) -> Option<microkit_emu::lcd::LcdSize> {
+        match self {
+            LcdChoice::None => None,
+            LcdChoice::L16x2 => Some(microkit_emu::lcd::LCD_16X2),
+            LcdChoice::L20x4 => Some(microkit_emu::lcd::LCD_20X4),
+        }
+    }
 }
 
 /// Which monitor ROM is in the socket.
@@ -110,6 +132,9 @@ impl Default for Settings {
             show_ports: false,
             theme: Theme::System,
             language: Language::English,
+            lcd: LcdChoice::None,
+            show_lcd: true,
+            lcd_blue: false,
         }
     }
 }
@@ -219,6 +244,7 @@ impl App {
         cc.egui_ctx.add_plugin(SelectionWatcher(app.selected_text.clone()));
         app.m.board.jumpers = app.settings.jumpers.clone();
         app.m.apply_jumpers();
+        app.m.board.lcd = app.settings.lcd.size().map(microkit_emu::lcd::Hd44780::new);
         let rom = opts.rom.clone().unwrap_or_else(|| app.settings.rom.clone());
         app.select_rom(rom);
         if !app.rom_loaded {
@@ -682,6 +708,7 @@ impl App {
                     self.save_wav();
                 }
             });
+            ui.menu_button(tr("LCD"), |ui| self.lcd_menu(ui));
             ui.menu_button(tr("Debug"), |ui| {
                 ui.checkbox(&mut self.settings.show_ports, tr("Show I/O ports"));
                 ui.checkbox(&mut self.settings.show_debug, tr("Show debug panel"));
@@ -1387,6 +1414,105 @@ impl App {
         );
     }
 
+    // ----- LCD ---------------------------------------------------------------------
+
+    fn lcd_menu(&mut self, ui: &mut egui::Ui) {
+        ui.label(RichText::new(tr("HD44780 LCD on port B (4-bit)")).weak());
+        let before = self.settings.lcd;
+        ui.radio_value(&mut self.settings.lcd, LcdChoice::None, tr("Not connected"));
+        ui.radio_value(&mut self.settings.lcd, LcdChoice::L16x2, "16x2");
+        ui.radio_value(&mut self.settings.lcd, LcdChoice::L20x4, "20x4");
+        if self.settings.lcd != before {
+            self.m.board.lcd = self.settings.lcd.size().map(microkit_emu::lcd::Hd44780::new);
+            if self.m.board.lcd.is_some() {
+                self.settings.show_lcd = true;
+            }
+            ui.close();
+        }
+        ui.separator();
+        let connected = self.m.board.lcd.is_some();
+        ui.add_enabled_ui(connected, |ui| {
+            ui.checkbox(&mut self.settings.show_lcd, tr("Show LCD window"));
+            ui.checkbox(&mut self.settings.lcd_blue, tr("Blue backlight"));
+            if ui.button(tr("Power cycle the LCD")).clicked() {
+                self.settings.lcd.size().map(|s| self.m.board.lcd = Some(microkit_emu::lcd::Hd44780::new(s)));
+                ui.close();
+            }
+        });
+        ui.separator();
+        ui.label(RichText::new(tr("Wiring: PB2 = RS, PB3 = E, PB4-PB7 = D4-D7;\nD0-D3 and R/W to ground. Example: examples/lcd.asm")).weak().small());
+    }
+
+    fn lcd_ui(&mut self, ui: &mut egui::Ui) {
+        let now = self.m.now();
+        let Some(lcd) = &self.m.board.lcd else { return };
+        let (bg, on, off, frame) = if self.settings.lcd_blue {
+            (Color32::from_rgb(0x1f, 0x45, 0xd8), Color32::from_rgb(0xec, 0xf3, 0xff), Color32::from_rgb(0x2a, 0x52, 0xe0), Color32::from_rgb(0x10, 0x1a, 0x40))
+        } else {
+            (Color32::from_rgb(0x9c, 0xc2, 0x2c), Color32::from_rgb(0x1c, 0x2a, 0x0c), Color32::from_rgb(0x92, 0xb8, 0x27), Color32::from_rgb(0x1a, 0x24, 0x12))
+        };
+        let (cols, rows) = (lcd.size.cols, lcd.size.rows);
+        let dot = 3.2;
+        let pitch = dot + 0.6;
+        let cell_w = 5.0 * pitch + 3.0;
+        let cell_h = 8.0 * pitch + 4.0;
+        let pad = 14.0;
+        let size = vec2(cols as f32 * cell_w + 2.0 * pad, rows as f32 * cell_h + 2.0 * pad);
+        let (rect, _) = ui.allocate_exact_size(size + vec2(12.0, 12.0), Sense::hover());
+        let p = ui.painter_at(rect);
+        p.rect_filled(rect, 6.0, frame);
+        let glass = rect.shrink(6.0);
+        p.rect_filled(glass, 3.0, bg);
+        let blink_full = lcd.blink_on && (now as f64 / CPU_HZ as f64 / 0.2048) as u64 % 2 == 0;
+        let cursor = if lcd.display_on { lcd.cursor_at() } else { None };
+        for r in 0..rows {
+            for c in 0..cols {
+                let origin = glass.min + vec2(pad + c as f32 * cell_w, pad + r as f32 * cell_h);
+                let mut g = match lcd.char_at(r, c) {
+                    Some(code) => lcd.glyph(code),
+                    None => [0; 8],
+                };
+                if !lcd.initialized && r % 2 == 0 {
+                    g = [0x1F; 8]; // a module that hasn't been set up shows dark blocks
+                }
+                if cursor == Some((r, c)) {
+                    if lcd.cursor_on {
+                        g[7] = 0x1F;
+                    }
+                    if blink_full {
+                        g = [0x1F; 8];
+                    }
+                }
+                for (y, bits) in g.iter().enumerate() {
+                    for x in 0..5 {
+                        let lit = bits & (0x10 >> x) != 0;
+                        let d = Rect::from_min_size(origin + vec2(x as f32 * pitch, y as f32 * pitch), vec2(dot, dot));
+                        p.rect_filled(d, 0.6, if lit { on } else { off });
+                    }
+                }
+            }
+        }
+        let mut info = vec![
+            if !lcd.initialized { tr("not initialized").to_string() } else if lcd.four_bit { tr("4-bit mode").to_string() } else { tr("8-bit mode").to_string() },
+            if lcd.display_on { tr("display on").to_string() } else { tr("display off").to_string() },
+            format!("AC={:02X}H", lcd.ac),
+        ];
+        if !lcd.two_lines && lcd.initialized {
+            info.push(tr("1-line mode").to_string());
+        }
+        ui.label(RichText::new(info.join(" · ")).small().weak());
+        if lcd.early_writes > 0 {
+            ui.label(
+                RichText::new(trf!("{} bytes arrived while the LCD was busy; a real module may lose them. Wait longer between writes.", lcd.early_writes))
+                    .small()
+                    .color(ui.visuals().warn_fg_color),
+            );
+        }
+        if self.m.board.pio.csr & 0x02 == 0 {
+            ui.label(RichText::new(tr("Port B is an input, so the LCD sees nothing.")).small().weak());
+        }
+    }
+
     fn tool_windows(&mut self, ctx: &egui::Context) {
         let mut show = self.settings.show_tape;
         if show {
@@ -1397,6 +1523,20 @@ impl App {
                 .default_pos(pos2(400.0, 120.0))
                 .show(ctx, |ui| self.tape_ui(ui));
             self.settings.show_tape = show;
+        }
+        if self.m.board.lcd.is_some() && self.settings.show_lcd {
+            let mut show = true;
+            let title = match self.settings.lcd {
+                LcdChoice::L20x4 => "LCD 20x4",
+                _ => "LCD 16x2",
+            };
+            egui::Window::new(title)
+                .id(egui::Id::unique("lcd_window"))
+                .open(&mut show)
+                .resizable(false)
+                .default_pos(pos2(420.0, 90.0))
+                .show(ctx, |ui| self.lcd_ui(ui));
+            self.settings.show_lcd = show;
         }
         let mut show = self.settings.show_ports;
         if show {

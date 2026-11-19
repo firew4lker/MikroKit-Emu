@@ -1,0 +1,416 @@
+//! HD44780-compatible character LCD on a 4-bit bus, wired to the 8155's
+//! port B as in the Microkit LCD add-on:
+//!
+//! PB2 = RS, PB3 = E, PB4..PB7 = D4..D7, D0..D3 and R/W tied to ground
+//! (so the busy flag can't be read; programs must wait).
+//!
+//! Data is latched on the falling edge of E. After power-on the controller
+//! is in 8-bit mode (with D0-D3 = 0 each strobe is a whole byte), so the
+//! usual 0x3, 0x3, 0x3, 0x2 sequence switches it to 4-bit mode.
+
+use crate::machine::CPU_HZ;
+
+/// Number of rows and columns.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct LcdSize {
+    pub cols: usize,
+    pub rows: usize,
+}
+
+pub const LCD_16X2: LcdSize = LcdSize { cols: 16, rows: 2 };
+pub const LCD_20X4: LcdSize = LcdSize { cols: 20, rows: 4 };
+
+pub const RS: u8 = 0x04;
+pub const E: u8 = 0x08;
+
+#[derive(Clone, Debug)]
+pub struct Hd44780 {
+    pub size: LcdSize,
+    pub ddram: [u8; 128],
+    pub cgram: [u8; 64],
+    /// Address counter.
+    pub ac: u8,
+    /// AC points into CGRAM (after a Set CGRAM address).
+    pub cg_mode: bool,
+    pub increment: bool,
+    pub shift_on_write: bool,
+    pub display_on: bool,
+    pub cursor_on: bool,
+    pub blink_on: bool,
+    pub four_bit: bool,
+    pub two_lines: bool,
+    /// Display shift: positions the picture has moved to the left.
+    pub shift: i32,
+    /// No instruction received since power-on (the panel shows its first
+    /// line as dark blocks, like a real module that hasn't been set up).
+    pub initialized: bool,
+    /// First nibble of a 4-bit transfer, waiting for the second.
+    pending: Option<u8>,
+    last_pins: u8,
+    busy_until: u64,
+    /// Bytes written while the controller was still busy with the previous
+    /// instruction. A real module may lose them; the emulator doesn't.
+    pub early_writes: u64,
+}
+
+impl Hd44780 {
+    pub fn new(size: LcdSize) -> Self {
+        Hd44780 {
+            size,
+            ddram: [0x20; 128],
+            cgram: [0; 64],
+            ac: 0,
+            cg_mode: false,
+            increment: true,
+            shift_on_write: false,
+            display_on: false,
+            cursor_on: false,
+            blink_on: false,
+            four_bit: false,
+            two_lines: false,
+            shift: 0,
+            initialized: false,
+            pending: None,
+            last_pins: 0,
+            busy_until: 0,
+            early_writes: 0,
+        }
+    }
+
+    /// New levels on port B (only while port B is an output).
+    pub fn pins(&mut self, v: u8, now: u64) {
+        let fell = self.last_pins & E != 0 && v & E == 0;
+        self.last_pins = v;
+        if !fell {
+            return;
+        }
+        let rs = v & RS != 0;
+        let nibble = v >> 4;
+        if !self.four_bit {
+            // 8-bit mode: D0-D3 are grounded
+            self.transfer(rs, nibble << 4, now);
+        } else if let Some(hi) = self.pending.take() {
+            self.transfer(rs, hi << 4 | nibble, now);
+        } else {
+            self.pending = Some(nibble);
+        }
+    }
+
+    fn transfer(&mut self, rs: bool, b: u8, now: u64) {
+        if now < self.busy_until {
+            self.early_writes += 1;
+        }
+        let us = |n: u64| n * CPU_HZ as u64 / 1_000_000;
+        self.busy_until = now + us(37);
+        if rs {
+            self.write_data(b);
+            self.busy_until = now + us(41);
+        } else {
+            self.initialized = true;
+            if b & 0xFC == 0 {
+                self.busy_until = now + us(1520);
+            }
+            self.command(b);
+        }
+    }
+
+    fn command(&mut self, b: u8) {
+        if b & 0x80 != 0 {
+            self.ac = b & 0x7F;
+            self.cg_mode = false;
+        } else if b & 0x40 != 0 {
+            self.ac = b & 0x3F;
+            self.cg_mode = true;
+        } else if b & 0x20 != 0 {
+            let was_four = self.four_bit;
+            self.four_bit = b & 0x10 == 0;
+            self.two_lines = b & 0x08 != 0;
+            if self.four_bit && !was_four {
+                self.pending = None;
+            }
+        } else if b & 0x10 != 0 {
+            let right = b & 0x04 != 0;
+            if b & 0x08 != 0 {
+                self.shift += if right { -1 } else { 1 };
+            } else {
+                self.step_ac(right);
+            }
+        } else if b & 0x08 != 0 {
+            self.display_on = b & 0x04 != 0;
+            self.cursor_on = b & 0x02 != 0;
+            self.blink_on = b & 0x01 != 0;
+        } else if b & 0x04 != 0 {
+            self.increment = b & 0x02 != 0;
+            self.shift_on_write = b & 0x01 != 0;
+        } else if b & 0x02 != 0 {
+            self.ac = 0;
+            self.cg_mode = false;
+            self.shift = 0;
+        } else if b & 0x01 != 0 {
+            self.ddram = [0x20; 128];
+            self.ac = 0;
+            self.cg_mode = false;
+            self.increment = true;
+            self.shift = 0;
+        }
+    }
+
+    fn write_data(&mut self, b: u8) {
+        if self.cg_mode {
+            self.cgram[(self.ac & 0x3F) as usize] = b & 0x1F;
+            self.ac = if self.increment { (self.ac + 1) & 0x3F } else { self.ac.wrapping_sub(1) & 0x3F };
+            return;
+        }
+        self.ddram[(self.ac & 0x7F) as usize] = b;
+        let inc = self.increment;
+        self.step_ac(inc);
+        if self.shift_on_write {
+            self.shift += if inc { 1 } else { -1 };
+        }
+    }
+
+    /// Move the DDRAM address counter, wrapping like the real controller.
+    fn step_ac(&mut self, up: bool) {
+        let a = self.ac;
+        self.ac = if self.two_lines {
+            match (up, a) {
+                (true, 0x27) => 0x40,
+                (true, 0x67) => 0x00,
+                (true, _) => a + 1,
+                (false, 0x00) => 0x67,
+                (false, 0x40) => 0x27,
+                (false, _) => a - 1,
+            }
+        } else if up {
+            (a + 1) % 80
+        } else {
+            (a + 79) % 80
+        };
+    }
+
+    /// DDRAM address shown at a row and column, or None if that row isn't
+    /// driven (one-line mode).
+    pub fn address_at(&self, row: usize, col: usize) -> Option<u8> {
+        let cols = self.size.cols as i32;
+        if self.two_lines {
+            let base = if row % 2 == 0 { 0x00 } else { 0x40 };
+            let off = (row / 2) as i32 * cols;
+            Some(base + (off + col as i32 + self.shift).rem_euclid(40) as u8)
+        } else if row % 2 == 0 {
+            let off = (row / 2) as i32 * cols;
+            Some((off + col as i32 + self.shift).rem_euclid(80) as u8)
+        } else {
+            None
+        }
+    }
+
+    /// Where the cursor is on screen, if it's visible there.
+    pub fn cursor_at(&self) -> Option<(usize, usize)> {
+        if self.cg_mode {
+            return None;
+        }
+        (0..self.size.rows)
+            .flat_map(|r| (0..self.size.cols).map(move |c| (r, c)))
+            .find(|&(r, c)| self.address_at(r, c) == Some(self.ac))
+    }
+
+    /// Character code shown at a cell (None = blank).
+    pub fn char_at(&self, row: usize, col: usize) -> Option<u8> {
+        if !self.display_on {
+            return None;
+        }
+        self.address_at(row, col).map(|a| self.ddram[a as usize])
+    }
+
+    /// 8 rows of 5 dots for a character code.
+    pub fn glyph(&self, code: u8) -> [u8; 8] {
+        if code < 0x10 {
+            let i = (code & 7) as usize * 8;
+            let mut g = [0; 8];
+            g.copy_from_slice(&self.cgram[i..i + 8]);
+            return g;
+        }
+        rom_glyph(code)
+    }
+
+    /// The text on a row (for tests and copying): ROM characters as ASCII.
+    pub fn row_text(&self, row: usize) -> String {
+        (0..self.size.cols)
+            .map(|c| match self.char_at(row, c) {
+                Some(b @ 0x20..=0x7D) if b != 0x5C => b as char,
+                Some(0x5C) => '¥',
+                Some(0x7E) => '→',
+                Some(0x7F) => '←',
+                Some(0xDF) => '°',
+                Some(_) => '?',
+                None => ' ',
+            })
+            .collect()
+    }
+}
+
+/// Character generator ROM (HD44780 A00 code page). 0x20-0x7F match the
+/// real chip; of 0x80-0xFF only a few symbols are included (the katakana
+/// are drawn blank).
+pub fn rom_glyph(code: u8) -> [u8; 8] {
+    let rows7: [u8; 7] = match code {
+        0x20..=0x7F => FONT[(code - 0x20) as usize],
+        0xA5 => [0x00, 0x00, 0x00, 0x0C, 0x0C, 0x00, 0x00],
+        0xB0 => [0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00],
+        0xDF => [0x1C, 0x14, 0x1C, 0x00, 0x00, 0x00, 0x00],
+        0xE0 => [0x00, 0x00, 0x09, 0x15, 0x12, 0x12, 0x0D],
+        0xE4 => [0x00, 0x00, 0x11, 0x11, 0x13, 0x1D, 0x10],
+        0xF4 => [0x00, 0x0E, 0x11, 0x11, 0x11, 0x0A, 0x1B],
+        0xF7 => [0x00, 0x1F, 0x0A, 0x0A, 0x0A, 0x0A, 0x13],
+        0xFD => [0x00, 0x04, 0x00, 0x1F, 0x00, 0x04, 0x00],
+        0xFF => return [0x1F; 8],
+        _ => [0; 7],
+    };
+    let mut g = [0; 8];
+    g[..7].copy_from_slice(&rows7);
+    g
+}
+
+#[rustfmt::skip]
+const FONT: [[u8; 7]; 96] = [
+    [0x00,0x00,0x00,0x00,0x00,0x00,0x00], [0x04,0x04,0x04,0x04,0x00,0x00,0x04], // space !
+    [0x0A,0x0A,0x0A,0x00,0x00,0x00,0x00], [0x0A,0x0A,0x1F,0x0A,0x1F,0x0A,0x0A], // " #
+    [0x04,0x0F,0x14,0x0E,0x05,0x1E,0x04], [0x18,0x19,0x02,0x04,0x08,0x13,0x03], // $ %
+    [0x0C,0x12,0x14,0x08,0x15,0x12,0x0D], [0x0C,0x04,0x08,0x00,0x00,0x00,0x00], // & '
+    [0x02,0x04,0x08,0x08,0x08,0x04,0x02], [0x08,0x04,0x02,0x02,0x02,0x04,0x08], // ( )
+    [0x00,0x04,0x15,0x0E,0x15,0x04,0x00], [0x00,0x04,0x04,0x1F,0x04,0x04,0x00], // * +
+    [0x00,0x00,0x00,0x00,0x0C,0x04,0x08], [0x00,0x00,0x00,0x1F,0x00,0x00,0x00], // , -
+    [0x00,0x00,0x00,0x00,0x00,0x0C,0x0C], [0x00,0x01,0x02,0x04,0x08,0x10,0x00], // . /
+    [0x0E,0x11,0x13,0x15,0x19,0x11,0x0E], [0x04,0x0C,0x04,0x04,0x04,0x04,0x0E], // 0 1
+    [0x0E,0x11,0x01,0x02,0x04,0x08,0x1F], [0x1F,0x02,0x04,0x02,0x01,0x11,0x0E], // 2 3
+    [0x02,0x06,0x0A,0x12,0x1F,0x02,0x02], [0x1F,0x10,0x1E,0x01,0x01,0x11,0x0E], // 4 5
+    [0x06,0x08,0x10,0x1E,0x11,0x11,0x0E], [0x1F,0x01,0x02,0x04,0x08,0x08,0x08], // 6 7
+    [0x0E,0x11,0x11,0x0E,0x11,0x11,0x0E], [0x0E,0x11,0x11,0x0F,0x01,0x02,0x0C], // 8 9
+    [0x00,0x0C,0x0C,0x00,0x0C,0x0C,0x00], [0x00,0x0C,0x0C,0x00,0x0C,0x04,0x08], // : ;
+    [0x02,0x04,0x08,0x10,0x08,0x04,0x02], [0x00,0x00,0x1F,0x00,0x1F,0x00,0x00], // < =
+    [0x08,0x04,0x02,0x01,0x02,0x04,0x08], [0x0E,0x11,0x01,0x02,0x04,0x00,0x04], // > ?
+    [0x0E,0x11,0x01,0x0D,0x15,0x15,0x0E], [0x0E,0x11,0x11,0x11,0x1F,0x11,0x11], // @ A
+    [0x1E,0x11,0x11,0x1E,0x11,0x11,0x1E], [0x0E,0x11,0x10,0x10,0x10,0x11,0x0E], // B C
+    [0x1C,0x12,0x11,0x11,0x11,0x12,0x1C], [0x1F,0x10,0x10,0x1E,0x10,0x10,0x1F], // D E
+    [0x1F,0x10,0x10,0x1E,0x10,0x10,0x10], [0x0E,0x11,0x10,0x17,0x11,0x11,0x0F], // F G
+    [0x11,0x11,0x11,0x1F,0x11,0x11,0x11], [0x0E,0x04,0x04,0x04,0x04,0x04,0x0E], // H I
+    [0x07,0x02,0x02,0x02,0x02,0x12,0x0C], [0x11,0x12,0x14,0x18,0x14,0x12,0x11], // J K
+    [0x10,0x10,0x10,0x10,0x10,0x10,0x1F], [0x11,0x1B,0x15,0x15,0x11,0x11,0x11], // L M
+    [0x11,0x11,0x19,0x15,0x13,0x11,0x11], [0x0E,0x11,0x11,0x11,0x11,0x11,0x0E], // N O
+    [0x1E,0x11,0x11,0x1E,0x10,0x10,0x10], [0x0E,0x11,0x11,0x11,0x15,0x12,0x0D], // P Q
+    [0x1E,0x11,0x11,0x1E,0x14,0x12,0x11], [0x0F,0x10,0x10,0x0E,0x01,0x01,0x1E], // R S
+    [0x1F,0x04,0x04,0x04,0x04,0x04,0x04], [0x11,0x11,0x11,0x11,0x11,0x11,0x0E], // T U
+    [0x11,0x11,0x11,0x11,0x11,0x0A,0x04], [0x11,0x11,0x11,0x15,0x15,0x15,0x0A], // V W
+    [0x11,0x11,0x0A,0x04,0x0A,0x11,0x11], [0x11,0x11,0x11,0x0A,0x04,0x04,0x04], // X Y
+    [0x1F,0x01,0x02,0x04,0x08,0x10,0x1F], [0x0E,0x08,0x08,0x08,0x08,0x08,0x0E], // Z [
+    [0x11,0x0A,0x1F,0x04,0x1F,0x04,0x04], [0x0E,0x02,0x02,0x02,0x02,0x02,0x0E], // yen ]
+    [0x04,0x0A,0x11,0x00,0x00,0x00,0x00], [0x00,0x00,0x00,0x00,0x00,0x00,0x1F], // ^ _
+    [0x08,0x04,0x02,0x00,0x00,0x00,0x00], [0x00,0x00,0x0E,0x01,0x0F,0x11,0x0F], // ` a
+    [0x10,0x10,0x16,0x19,0x11,0x11,0x1E], [0x00,0x00,0x0E,0x10,0x10,0x11,0x0E], // b c
+    [0x01,0x01,0x0D,0x13,0x11,0x11,0x0F], [0x00,0x00,0x0E,0x11,0x1F,0x10,0x0E], // d e
+    [0x06,0x09,0x08,0x1C,0x08,0x08,0x08], [0x00,0x0F,0x11,0x11,0x0F,0x01,0x0E], // f g
+    [0x10,0x10,0x16,0x19,0x11,0x11,0x11], [0x04,0x00,0x0C,0x04,0x04,0x04,0x0E], // h i
+    [0x02,0x00,0x06,0x02,0x02,0x12,0x0C], [0x10,0x10,0x12,0x14,0x18,0x14,0x12], // j k
+    [0x0C,0x04,0x04,0x04,0x04,0x04,0x0E], [0x00,0x00,0x1A,0x15,0x15,0x11,0x11], // l m
+    [0x00,0x00,0x16,0x19,0x11,0x11,0x11], [0x00,0x00,0x0E,0x11,0x11,0x11,0x0E], // n o
+    [0x00,0x00,0x1E,0x11,0x1E,0x10,0x10], [0x00,0x00,0x0D,0x13,0x0F,0x01,0x01], // p q
+    [0x00,0x00,0x16,0x19,0x10,0x10,0x10], [0x00,0x00,0x0E,0x10,0x0E,0x01,0x1E], // r s
+    [0x08,0x08,0x1C,0x08,0x08,0x09,0x06], [0x00,0x00,0x11,0x11,0x11,0x13,0x0D], // t u
+    [0x00,0x00,0x11,0x11,0x11,0x0A,0x04], [0x00,0x00,0x11,0x11,0x15,0x15,0x0A], // v w
+    [0x00,0x00,0x11,0x0A,0x04,0x0A,0x11], [0x00,0x00,0x11,0x11,0x0F,0x01,0x0E], // x y
+    [0x00,0x00,0x1F,0x02,0x04,0x08,0x1F], [0x02,0x04,0x04,0x08,0x04,0x04,0x02], // z {
+    [0x04,0x04,0x04,0x04,0x04,0x04,0x04], [0x08,0x04,0x04,0x02,0x04,0x04,0x08], // | }
+    [0x00,0x04,0x02,0x1F,0x02,0x04,0x00], [0x00,0x04,0x08,0x1F,0x08,0x04,0x00], // → ←
+];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Send a byte the way a program does: two nibbles, each with an E pulse.
+    fn send(l: &mut Hd44780, rs: bool, b: u8, now: &mut u64) {
+        for nib in [b >> 4, b & 15] {
+            let v = nib << 4 | if rs { RS } else { 0 };
+            l.pins(v | E, *now);
+            l.pins(v, *now);
+            *now += 3072; // 1 ms
+        }
+    }
+
+    fn init4(l: &mut Hd44780, now: &mut u64) {
+        for nib in [3u8, 3, 3, 2] {
+            l.pins(nib << 4 | E, *now);
+            l.pins(nib << 4, *now);
+            *now += 15_000;
+        }
+        for c in [0x28, 0x0C, 0x01, 0x06] {
+            send(l, false, c, now);
+        }
+    }
+
+    #[test]
+    fn four_bit_init_and_text() {
+        let mut l = Hd44780::new(LCD_16X2);
+        let mut now = 0;
+        init4(&mut l, &mut now);
+        assert!(l.four_bit && l.two_lines && l.display_on);
+        for b in b"Hello" {
+            send(&mut l, true, *b, &mut now);
+        }
+        send(&mut l, false, 0xC0, &mut now);
+        for b in b"World" {
+            send(&mut l, true, *b, &mut now);
+        }
+        assert_eq!(l.row_text(0), "Hello           ");
+        assert_eq!(l.row_text(1), "World           ");
+        assert_eq!(l.early_writes, 0);
+    }
+
+    #[test]
+    fn rows_of_a_20x4_and_wrapping() {
+        let mut l = Hd44780::new(LCD_20X4);
+        let mut now = 0;
+        init4(&mut l, &mut now);
+        for (addr, t) in [(0x00, "row1"), (0x40, "row2"), (0x14, "row3"), (0x54, "row4")] {
+            send(&mut l, false, 0x80 | addr, &mut now);
+            for b in t.bytes() {
+                send(&mut l, true, b, &mut now);
+            }
+        }
+        for (r, t) in ["row1", "row2", "row3", "row4"].iter().enumerate() {
+            assert!(l.row_text(r).starts_with(t), "{r}: {:?}", l.row_text(r));
+        }
+        // 40 characters fill line 1 (rows 1 and 3), then continue on line 2
+        send(&mut l, false, 0x01, &mut now);
+        for i in 0..41u8 {
+            send(&mut l, true, b'A' + i % 26, &mut now);
+        }
+        assert_eq!(&l.row_text(2)[..3], "UVW");
+        assert_eq!(&l.row_text(1)[..1], "O");
+    }
+
+    #[test]
+    fn cgram_and_busy() {
+        let mut l = Hd44780::new(LCD_16X2);
+        let mut now = 0;
+        init4(&mut l, &mut now);
+        send(&mut l, false, 0x40, &mut now);
+        for r in [0x1F, 0x11, 0x11, 0x11, 0x11, 0x11, 0x1F, 0x00] {
+            send(&mut l, true, r, &mut now);
+        }
+        send(&mut l, false, 0x80, &mut now);
+        send(&mut l, true, 0, &mut now);
+        assert_eq!(l.glyph(l.char_at(0, 0).unwrap())[0], 0x1F);
+        // a byte straight after Clear (which takes 1.52 ms) is too early
+        let v = 0;
+        l.pins(v | E, now);
+        l.pins(v, now);
+        l.pins(0x10 | E, now);
+        l.pins(0x10, now);
+        l.pins(RS | 0x40 | E, now + 100);
+        l.pins(RS | 0x40, now + 100);
+        l.pins(RS | 0x10 | E, now + 100);
+        l.pins(RS | 0x10, now + 100);
+        assert_eq!(l.early_writes, 1);
+    }
+}

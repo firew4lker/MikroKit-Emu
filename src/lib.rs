@@ -3,6 +3,7 @@
 pub mod asm;
 pub mod cpu;
 pub mod disasm;
+pub mod lcd;
 pub mod loader;
 pub mod machine;
 pub mod periph;

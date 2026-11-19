@@ -58,6 +58,16 @@ microkit-emu [--rom original|basic|PATH] [--terminal | --keypad] [--debug] [prog
   8155's command register, plus the X3 inputs (port 3EH) and the timer.
   Try `examples/ports.asm` (switches → LEDs) and `examples/outputs.asm`
   (all three ports as outputs).
+- **LCD** (*LCD* menu): plug a 16x2 or 20x4 HD44780-compatible character
+  LCD into the 8155's port B, wired for 4-bit mode: PB2 = RS, PB3 = E,
+  PB4–PB7 = D4–D7 (X2 pins 15, 16, 13, 14, 11, 12), D0–D3 and R/W to
+  ground. The window shows the dot matrix (yellow-green or blue), the
+  cursor and blinking, and warns when a program writes faster than a real
+  module accepts (R/W is grounded, so programs can't read the busy flag
+  and must wait: ~40 µs per byte, 1.52 ms after Clear or Home). The
+  character set is the A00 ROM for 0x20–0x7F plus the 8 user-defined
+  characters; of 0x80–0xFF only a few symbols are drawn (no katakana).
+  Try `examples/lcd.asm`, or `examples/lcd.bas` in Tiny BASIC.
 - **Copy and paste**: drag over terminal text to select it. Right-click
   the terminal for *Copy*, *Copy all text*, *Paste*, *Send Ctrl+C* and
   *Clear terminal*. With text selected, Ctrl+C copies; otherwise it sends
