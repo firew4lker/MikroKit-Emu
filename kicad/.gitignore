@@ -1,0 +1,8 @@
+*-bak
+*.bak
+_autosave-*
+*.kicad_prl
+fp-info-cache
+#auto_saved_files#
+__pycache__/
+*.lck
