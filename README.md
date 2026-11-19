@@ -56,7 +56,7 @@ microkit-emu [--rom original|basic|PATH] [--terminal | --keypad] [--debug] [prog
   last EX / Return. Read back with `GO 1300 EX` or `R`, pressing *Play* the
   same way. Tapes are saved and loaded as WAV files, so you can also play
   them into a real Microkit, or record a real kit's tape to load here.
-- **I/O ports** (🔌 I/O ports): the 8155's ports A, B and C on connector X2
+- **I/O ports** (⬌ I/O ports): the 8155's ports A, B and C on connector X2
   shown as LEDs (outputs) or clickable switches (inputs), following the
   8155's command register, plus the X3 inputs (port 3EH) and the timer.
   Try `examples/ports.asm` (switches → LEDs) and `examples/outputs.asm`

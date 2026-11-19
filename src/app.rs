@@ -786,7 +786,7 @@ impl App {
             ui.label(RichText::new(format!("{:.2} MHz", self.measured_mhz)).weak());
             ui.separator();
             ui.toggle_value(&mut self.settings.show_tape, tr("📼 Tape"));
-            ui.toggle_value(&mut self.settings.show_ports, tr("🔌 I/O ports"));
+            ui.toggle_value(&mut self.settings.show_ports, tr("⬌ I/O ports"));
             ui.checkbox(&mut self.settings.show_debug, tr("Debug"));
         });
     }
@@ -1547,7 +1547,7 @@ impl App {
         }
         let mut show = self.settings.show_ports;
         if show {
-            egui::Window::new(tr("🔌 I/O ports"))
+            egui::Window::new(tr("⬌ I/O ports"))
                 .open(&mut show)
                 .resizable(false)
                 .default_pos(pos2(420.0, 360.0))
