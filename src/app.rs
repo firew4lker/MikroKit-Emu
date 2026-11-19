@@ -1846,9 +1846,11 @@ impl App {
                 _ => "LCD 16x2",
             };
             egui::Window::new(title)
-                .id(egui::Id::unique("lcd_window"))
+                // a new id drops the size remembered from the bigger LCD of
+                // earlier versions; auto_sized shrinks the window to its content
+                .id(egui::Id::unique("lcd_window_2"))
                 .open(&mut show)
-                .resizable(false)
+                .auto_sized()
                 .default_pos(pos2(420.0, 90.0))
                 .show(ctx, |ui| self.lcd_ui(ui));
             if !show {
