@@ -1,6 +1,6 @@
-# Microkit 8085 emulator
+# MicroKit-Emu
 
-A cross-platform emulator of the Micro Design **Microkit** 8085 trainer
+**MicroKit-Emu** is a cross-platform emulator of the Micro Design **Microkit** 8085 trainer
 (Athens, 1985). It runs the original monitor ROM v5.12 unchanged and behaves
 like the board: 6-digit 7-segment display, 24-key keypad, the DB9-1 serial
 terminal, single step, the VI interrupt key, and HEX downloads over either

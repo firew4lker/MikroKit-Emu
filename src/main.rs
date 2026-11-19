@@ -4,7 +4,7 @@ mod app;
 mod system_theme;
 
 const USAGE: &str = "\
-Microkit 8085 trainer emulator
+MicroKit-Emu — Micro Design Microkit 8085 trainer emulator
 
 usage: microkit-emu [options] [program.hex|.asm|.bin]
 
@@ -96,6 +96,27 @@ fn main() -> std::process::ExitCode {
     }
 }
 
+const APP_NAME: &str = "MicroKit-Emu";
+/// What the app was called before it was named; its settings folder.
+const OLD_APP_NAME: &str = "Microkit 8085 emulator";
+
+/// Carry the settings over from the folder used before the rename.
+fn migrate_settings() {
+    let (Some(new), Some(old)) = (eframe::storage_dir(APP_NAME), eframe::storage_dir(OLD_APP_NAME)) else {
+        return;
+    };
+    if new.exists() || !old.exists() {
+        return;
+    }
+    if std::fs::create_dir_all(&new).is_ok() {
+        if let Ok(dir) = std::fs::read_dir(&old) {
+            for f in dir.flatten() {
+                let _ = std::fs::copy(f.path(), new.join(f.file_name()));
+            }
+        }
+    }
+}
+
 fn run_gui(all: Vec<std::ffi::OsString>) -> eframe::Result {
     let mut opts = app::Options::default();
     let mut args = all.into_iter();
@@ -119,12 +140,14 @@ fn run_gui(all: Vec<std::ffi::OsString>) -> eframe::Result {
             _ => opts.program = Some(a.into()),
         }
     }
+    migrate_settings();
     let options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
-            .with_title("Microkit 8085 emulator")
+            .with_title(APP_NAME)
+            .with_app_id(APP_NAME)
             .with_inner_size([1180.0, 760.0])
             .with_min_inner_size([820.0, 560.0]),
         ..Default::default()
     };
-    eframe::run_native("Microkit 8085 emulator", options, Box::new(move |cc| Ok(Box::new(app::App::new(cc, opts)))))
+    eframe::run_native(APP_NAME, options, Box::new(move |cc| Ok(Box::new(app::App::new(cc, opts)))))
 }

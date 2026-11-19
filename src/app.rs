@@ -703,6 +703,8 @@ impl App {
                     self.show_help = true;
                     ui.close();
                 }
+                ui.separator();
+                ui.label(format!("MicroKit-Emu {}", env!("CARGO_PKG_VERSION")));
             });
         });
     }
@@ -1483,7 +1485,7 @@ impl App {
             }
         }
         if self.show_help {
-            egui::Window::new("Keys and usage").open(&mut self.show_help).show(ctx, |ui| {
+            egui::Window::new("MicroKit-Emu — keys and usage").open(&mut self.show_help).show(ctx, |ui| {
                 ui.label(HELP_TEXT);
             });
         }
