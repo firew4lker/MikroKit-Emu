@@ -2,6 +2,7 @@
 # Build the browser version into web/dist (needs: rustup target add
 # wasm32-unknown-unknown, and wasm-bindgen-cli of the same version as the
 # wasm-bindgen crate in Cargo.lock). Serve web/dist with any static web server.
+# With --zip it also makes web/mikrokit-emu-web.zip (for a release).
 set -e
 cd "$(dirname "$0")/.."
 cargo build --release --target wasm32-unknown-unknown
@@ -22,3 +23,13 @@ fi
 cp web/index.html web/dist/
 cp assets/icon-64.png web/dist/
 ls -l web/dist
+
+if [ "$1" = "--zip" ]; then
+  stage=$(mktemp -d)
+  mkdir "$stage/mikrokit-emu-web"
+  cp web/dist/* web/README.md LICENSE "$stage/mikrokit-emu-web/"
+  rm -f web/mikrokit-emu-web.zip
+  (cd "$stage" && zip -qr - mikrokit-emu-web) > web/mikrokit-emu-web.zip
+  rm -rf "$stage"
+  ls -l web/mikrokit-emu-web.zip
+fi

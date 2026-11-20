@@ -44,6 +44,7 @@ Ready-made builds are on the [Releases page](https://github.com/firew4lker/Mikro
 | `mikrokit-emu-linux-x86_64.tar.gz` | Linux (x86-64, glibc 2.44 or newer) |
 | `mikrokit-emu-windows-x86_64.zip` | Windows 10 or newer (64-bit) |
 | `mikrokit-emu-1.0.0-1-x86_64.pkg.tar.zst` | Arch Linux (`sudo pacman -U …`) |
+| `mikrokit-emu-web.zip` | the browser version, to host on your own web server ([how](web/README.md)) |
 
 ## Documentation
 
