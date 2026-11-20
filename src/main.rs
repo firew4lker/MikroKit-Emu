@@ -4,7 +4,14 @@ mod app;
 mod asm_highlight;
 mod i18n;
 mod system_theme;
+#[cfg(target_arch = "wasm32")]
+mod web;
+#[cfg(target_arch = "wasm32")]
+fn main() {
+    web::start();
+}
 
+#[cfg(not(target_arch = "wasm32"))]
 const USAGE: &str = "\
 MikroKit-Emu — Micro Design Mikrokit 8085 trainer emulator
 
@@ -26,6 +33,7 @@ assembler (no window):
     .bin output is the 8 KB ROM image 0000-1FFF (gaps filled with 00);
     .hex output contains every assembled byte.";
 
+#[cfg(not(target_arch = "wasm32"))]
 fn assemble_cli(args: &[std::ffi::OsString]) -> std::process::ExitCode {
     use mikrokit_emu::{asm, loader};
     let mut src = None;
@@ -87,6 +95,7 @@ fn assemble_cli(args: &[std::ffi::OsString]) -> std::process::ExitCode {
     std::process::ExitCode::SUCCESS
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn main() -> std::process::ExitCode {
     let all: Vec<std::ffi::OsString> = std::env::args_os().skip(1).collect();
     // A Windows GUI program has no console; use the one it was started from
@@ -130,11 +139,14 @@ fn main() -> std::process::ExitCode {
     supervise(all)
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 const APP_NAME: &str = "MikroKit-Emu";
 /// Earlier names of the app (newest first): their settings folders.
+#[cfg(not(target_arch = "wasm32"))]
 const OLD_APP_NAMES: &[&str] = &["MicroKit-Emu", "Microkit 8085 emulator"];
 
 /// Carry the settings over from the folder used before a rename.
+#[cfg(not(target_arch = "wasm32"))]
 fn migrate_settings() {
     let Some(new) = eframe::storage_dir(APP_NAME) else { return };
     if new.exists() {
@@ -152,6 +164,7 @@ fn migrate_settings() {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn run_gui(all: Vec<std::ffi::OsString>) -> eframe::Result {
     let mut opts = app::Options::default();
     let mut renderer: Option<String> = None;
@@ -215,6 +228,7 @@ pub fn signal_ready() {
 /// separate process can notice and try again with OpenGL. The renderer that
 /// worked is remembered, so a PC with a broken Vulkan/Direct3D 12 driver
 /// goes straight to OpenGL next time.
+#[cfg(not(target_arch = "wasm32"))]
 fn supervise(all: Vec<std::ffi::OsString>) -> std::process::ExitCode {
     use std::io::{BufRead, BufReader};
     use std::process::{Command, Stdio};
@@ -314,16 +328,19 @@ fn supervise(all: Vec<std::ffi::OsString>) -> std::process::ExitCode {
     std::process::ExitCode::FAILURE
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn renderer_name(r: &str) -> &'static str {
     if r == "glow" { "OpenGL" } else { "Vulkan / Direct3D 12" }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn last_lines(text: &str, n: usize) -> String {
     let lines: Vec<&str> = text.lines().filter(|l| !l.trim().is_empty()).collect();
     lines[lines.len().saturating_sub(n)..].join("\n")
 }
 
 /// The exit status in words, with the Windows crash codes people meet.
+#[cfg(not(target_arch = "wasm32"))]
 fn explain_status(st: &std::process::ExitStatus) -> String {
     #[cfg(unix)]
     {
@@ -354,16 +371,19 @@ fn explain_status(st: &std::process::ExitStatus) -> String {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn renderer_file() -> Option<std::path::PathBuf> {
     eframe::storage_dir(APP_NAME).map(|d| d.join("renderer"))
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn remembered_renderer() -> Option<String> {
     let s = std::fs::read_to_string(renderer_file()?).ok()?;
     let s = s.trim().to_string();
     (!s.is_empty()).then_some(s)
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn remember_renderer(r: Option<&str>) {
     let Some(f) = renderer_file() else { return };
     match r {
@@ -381,6 +401,7 @@ fn remember_renderer(r: Option<&str>) {
 
 /// The child: open the window with the given renderer. Errors go to stderr
 /// (the supervisor shows them); a panic exits with code 101.
+#[cfg(not(target_arch = "wasm32"))]
 fn run_child(args: Vec<std::ffi::OsString>, renderer: &str) -> std::process::ExitCode {
     let mut all: Vec<std::ffi::OsString> = vec!["--renderer".into(), renderer.into()];
     all.extend(args);
@@ -396,6 +417,7 @@ fn run_child(args: Vec<std::ffi::OsString>, renderer: &str) -> std::process::Exi
 
 /// Tell the user why the program stopped: a message box on Windows (it has
 /// no console), stderr elsewhere, and a log file next to the settings.
+#[cfg(not(target_arch = "wasm32"))]
 fn report_error(what: &str, detail: &str, no_window: bool) {
     let mut text = format!("{what}\n\n{detail}");
     if no_window {

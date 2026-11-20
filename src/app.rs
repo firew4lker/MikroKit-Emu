@@ -15,7 +15,10 @@ use mikrokit_emu::segments;
 use mikrokit_emu::tape::{Tape, TapeState};
 use mikrokit_emu::terminal::Terminal;
 use std::path::{Path, PathBuf};
-use std::time::Instant;
+use web_time::Instant;
+// in the browser: stand-ins for the file dialogs and the clipboard
+#[cfg(target_arch = "wasm32")]
+use crate::web::{arboard, rfd};
 
 const PCB: Color32 = Color32::from_rgb(0x12, 0x3b, 0x2a);
 const PCB_TEXT: Color32 = Color32::from_rgb(0x9f, 0xe1, 0xcb);
