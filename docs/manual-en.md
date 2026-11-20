@@ -90,6 +90,24 @@ usually helps; in a virtual machine, turn on 3D acceleration. After a
 driver update, start it once with `mikrokit-emu.exe --renderer wgpu` to use
 the normal method again.
 
+### In a web browser
+
+Open <https://firew4lker.github.io/MikroKit-Emu/>. The same emulator runs in the page, with nothing to install;
+it needs a current browser on a computer (one with WebGL 2, which all
+current browsers have). A few things work differently there:
+
+- **Open** (Load program, Monitor ROM, the editor's 📂, Load WAV, Send
+  file) uploads a file from your computer. You can also drop a program file
+  on the page. The browser forgets uploaded files when the page is reloaded,
+  so **Reload last program** works only until then.
+- **Save** (the editor's 💾, Save memory range, Save WAV) downloads the file
+  to your Downloads folder.
+- **Paste**: Ctrl+V pastes into the terminal and the editor. Paste in the
+  right-click menus asks the browser for the clipboard, and the browser may
+  ask you to allow it first.
+- Settings and the editor's text are kept by the browser for this site.
+- There are no command-line options, and no Quit (close the tab).
+
 ### Building from the source code (Linux, Windows, macOS)
 
 Install Rust from <https://rustup.rs>, then in the `emulator` folder run:

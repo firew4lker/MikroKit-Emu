@@ -1836,6 +1836,7 @@ dependencies = [
  "console_error_panic_hook",
  "eframe",
  "egui",
+ "js-sys",
  "rfd",
  "serde",
  "wasm-bindgen",

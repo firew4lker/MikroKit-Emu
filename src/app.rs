@@ -16,9 +16,11 @@ use mikrokit_emu::tape::{Tape, TapeState};
 use mikrokit_emu::terminal::Terminal;
 use std::path::{Path, PathBuf};
 use web_time::Instant;
-// in the browser: stand-ins for the file dialogs and the clipboard
+// in the browser, files are uploaded and downloaded (see web.rs)
 #[cfg(target_arch = "wasm32")]
-use crate::web::{arboard, rfd};
+use crate::web::{fs, rfd};
+#[cfg(not(target_arch = "wasm32"))]
+use std::fs;
 
 const PCB: Color32 = Color32::from_rgb(0x12, 0x3b, 0x2a);
 const PCB_TEXT: Color32 = Color32::from_rgb(0x9f, 0xe1, 0xcb);
@@ -225,6 +227,8 @@ pub struct App {
     /// the menu's Cut/Copy should act on.
     editor_sel: (usize, usize),
     editor_menu_was_open: bool,
+    /// the editor's widget id (for a paste that arrives later)
+    editor_id: Option<egui::Id>,
 }
 
 /// Command-line options.
@@ -275,6 +279,7 @@ impl App {
             editor_result: None,
             editor_sel: (0, 0),
             editor_menu_was_open: false,
+            editor_id: None,
         };
         cc.egui_ctx.set_visuals_of(egui::Theme::Light, light_visuals());
         cc.egui_ctx.set_theme(app.settings.theme.preference());
@@ -283,6 +288,14 @@ impl App {
         app.m.apply_jumpers();
         app.m.board.lcd = app.settings.lcd.size().map(mikrokit_emu::lcd::Hd44780::new);
         let rom = opts.rom.clone().unwrap_or_else(|| app.settings.rom.clone());
+        // in the browser an uploaded ROM is gone after the page reloads
+        #[cfg(target_arch = "wasm32")]
+        let rom = match rom {
+            RomChoice::File(_) => RomChoice::default(),
+            r => r,
+        };
+        #[cfg(target_arch = "wasm32")]
+        crate::web::set_context(cc.egui_ctx.clone());
         app.select_rom(rom);
         if !app.rom_loaded {
             // a saved external file that has gone away: fall back to the original
@@ -334,14 +347,14 @@ impl App {
         let result: Result<Vec<u8>, String> = (|| {
             let ext = ext_of(path);
             if ext == "asm" || ext == "a85" || ext == "s" {
-                let src = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
+                let src = fs::read_to_string(path).map_err(|e| e.to_string())?;
                 let out = asm::assemble(&src).map_err(|e| e.to_string())?;
                 Ok(out.image.to_rom())
             } else if ext == "hex" || ext == "ihx" {
-                let src = std::fs::read_to_string(path).map_err(|e| e.to_string())?;
+                let src = fs::read_to_string(path).map_err(|e| e.to_string())?;
                 Ok(loader::parse_ihex(&src)?.to_rom())
             } else {
-                let data = std::fs::read(path).map_err(|e| e.to_string())?;
+                let data = fs::read(path).map_err(|e| e.to_string())?;
                 if data.len() > 0x2000 {
                     return Err(trf!("file is {} bytes; the ROM socket holds 8 KB", data.len()));
                 }
@@ -380,14 +393,13 @@ impl App {
         ui.separator();
         if ui.button(tr("Load from file…")).clicked() {
             ui.close();
-            if let Some(p) = rfd::FileDialog::new()
-                .set_title(tr("Load monitor ROM"))
-                .add_filter(tr("ROM image or source"), &["bin", "rom", "hex", "asm", "a85"])
-                .add_filter(tr("All files"), &["*"])
-                .pick_file()
-            {
-                self.load_rom(&p);
-            }
+            self.pick(
+                Pick::Rom,
+                rfd::FileDialog::new()
+                    .set_title(tr("Load monitor ROM"))
+                    .add_filter(tr("ROM image or source"), &["bin", "rom", "hex", "asm", "a85"])
+                    .add_filter(tr("All files"), &["*"]),
+            );
         }
         if let Some(c) = pick {
             ui.close();
@@ -395,16 +407,81 @@ impl App {
         }
     }
 
+    /// Show an Open dialog. On the desktop the file is used right away; in the
+    /// browser it is uploaded and used when it arrives (see `web_events`).
+    fn pick(&mut self, what: Pick, dialog: rfd::FileDialog) {
+        #[cfg(not(target_arch = "wasm32"))]
+        if let Some(p) = dialog.pick_file() {
+            self.picked(what, p);
+        }
+        #[cfg(target_arch = "wasm32")]
+        crate::web::pick(what, dialog);
+    }
+
+    fn picked(&mut self, what: Pick, p: PathBuf) {
+        match what {
+            Pick::Program => self.load_program(&p),
+            Pick::Rom => self.load_rom(&p),
+            Pick::Editor => self.editor_open_path(p),
+            Pick::Send(port) => self.send_file_path(port, &p),
+            Pick::Wav => {
+                if self.m.board.tape.modified {
+                    self.confirm = Some(Confirm::LoadWav(p));
+                } else {
+                    self.load_wav(&p);
+                }
+            }
+        }
+    }
+
+    /// The clipboard's text. In the browser it arrives later (see `web_events`),
+    /// so this gives None there and the paste happens then.
+    fn clipboard_text(&mut self, to: PasteTo) -> Option<String> {
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let _ = to;
+            match arboard::Clipboard::new().and_then(|mut c| c.get_text()) {
+                Ok(t) => Some(t),
+                Err(e) => {
+                    self.status = trf!("Nothing to paste ({})", e);
+                    None
+                }
+            }
+        }
+        #[cfg(target_arch = "wasm32")]
+        {
+            crate::web::read_clipboard(to);
+            None
+        }
+    }
+
+    /// Files and clipboard text that arrived from the browser.
+    #[cfg(target_arch = "wasm32")]
+    fn web_events(&mut self, ctx: &egui::Context) {
+        for ev in crate::web::take_events() {
+            match ev {
+                crate::web::Event::Picked(what, p) => self.picked(what, p),
+                crate::web::Event::Pasted(_, Err(e)) => self.status = trf!("Nothing to paste ({})", e),
+                crate::web::Event::Pasted(PasteTo::Terminal, Ok(t)) => self.paste_text_into_terminal(t),
+                crate::web::Event::Pasted(PasteTo::Editor, Ok(t)) => {
+                    if let Some(id) = self.editor_id {
+                        self.editor_edit(ctx, id, 2, Some(t));
+                    }
+                }
+            }
+        }
+    }
+
     fn load_program(&mut self, path: &Path) {
         let ext = ext_of(path);
         let img = match ext.as_str() {
-            "hex" | "ihx" => std::fs::read_to_string(path)
+            "hex" | "ihx" => fs::read_to_string(path)
                 .map_err(|e| e.to_string())
                 .and_then(|t| loader::parse_ihex(&t)),
-            "asm" | "a85" | "s" | "src" => std::fs::read_to_string(path)
+            "asm" | "a85" | "s" | "src" => fs::read_to_string(path)
                 .map_err(|e| e.to_string())
                 .and_then(|t| asm::assemble(&t).map(|o| o.image).map_err(|e| e.to_string())),
-            _ => match std::fs::read(path) {
+            _ => match fs::read(path) {
                 Ok(data) => {
                     self.bin_dialog = Some(BinDialog {
                         path: path.to_path_buf(),
@@ -492,15 +569,17 @@ impl App {
     }
 
     fn editor_open(&mut self) {
-        let Some(p) = rfd::FileDialog::new()
-            .set_title(tr("Open assembly source"))
-            .add_filter(tr("8085 assembly"), &["asm", "a85", "s", "src", "txt"])
-            .add_filter(tr("All files"), &["*"])
-            .pick_file()
-        else {
-            return;
-        };
-        match std::fs::read_to_string(&p) {
+        self.pick(
+            Pick::Editor,
+            rfd::FileDialog::new()
+                .set_title(tr("Open assembly source"))
+                .add_filter(tr("8085 assembly"), &["asm", "a85", "s", "src", "txt"])
+                .add_filter(tr("All files"), &["*"]),
+        );
+    }
+
+    fn editor_open_path(&mut self, p: PathBuf) {
+        match fs::read_to_string(&p) {
             Ok(t) => {
                 self.settings.editor_text = t;
                 self.settings.editor_path = Some(p);
@@ -520,7 +599,7 @@ impl App {
         else {
             return;
         };
-        match std::fs::write(&p, &self.settings.editor_text) {
+        match fs::write(&p, &self.settings.editor_text) {
             Ok(()) => {
                 self.status = trf!("Saved {}", file_name(&p));
                 self.settings.editor_path = Some(p);
@@ -530,7 +609,14 @@ impl App {
     }
 
     /// Right-click menu actions on the editor: 0 cut, 1 copy, 2 paste, 3 select all.
-    fn editor_edit(&mut self, ctx: &egui::Context, id: egui::Id, action: u8) {
+    /// `pasted`: text for a paste that arrived later (browser).
+    fn editor_edit(&mut self, ctx: &egui::Context, id: egui::Id, action: u8, pasted: Option<String>) {
+        if action == 2 && pasted.is_none() {
+            match self.clipboard_text(PasteTo::Editor) {
+                Some(t) => return self.editor_edit(ctx, id, 2, Some(t)),
+                None => return,
+            }
+        }
         use egui::text::{CCursor, CharIndex};
         let mut state = egui::text_edit::TextEditState::load(ctx, id).unwrap_or_default();
         let text = &mut self.settings.editor_text;
@@ -551,18 +637,12 @@ impl App {
                     (a, b)
                 }
             }
-            2 => match arboard::Clipboard::new().and_then(|mut c| c.get_text()) {
-                Ok(paste) => {
-                    let paste = paste.replace("\r\n", "\n").replace('\r', "\n");
-                    let n = paste.chars().count();
-                    text.replace_range(ba..bb, &paste);
-                    (a + n, a + n)
-                }
-                Err(e) => {
-                    self.status = trf!("Nothing to paste ({})", e);
-                    return;
-                }
-            },
+            2 => {
+                let paste = pasted.unwrap_or_default().replace("\r\n", "\n").replace('\r', "\n");
+                let n = paste.chars().count();
+                text.replace_range(ba..bb, &paste);
+                (a + n, a + n)
+            }
             _ => (0, nchars),
         };
         self.editor_sel = (new_a, new_b);
@@ -637,6 +717,7 @@ impl App {
             _ => None,
         };
         let id = ui.make_persistent_id("asm_editor_text");
+        self.editor_id = Some(id);
         // Ctrl+Enter assembles (take the key before the editor turns it into a newline)
         if ui.memory(|m| m.has_focus(id)) && ui.input_mut(|i| i.consume_key(egui::Modifiers::COMMAND, EKey::Enter)) {
             self.editor_assemble();
@@ -718,7 +799,7 @@ impl App {
                                 }
                             }
                             if let Some(a) = action {
-                                self.editor_edit(ui.ctx(), id, a);
+                                self.editor_edit(ui.ctx(), id, a, None);
                             }
                             if resp.changed() && self.settings.editor_text.len() != before {
                                 // an old error line no longer matches the text
@@ -733,22 +814,25 @@ impl App {
     }
 
     fn send_file(&mut self, port: u8) {
-        let Some(path) = rfd::FileDialog::new()
-            .set_title(trf!("Send file to DB9-{}", port))
-            .add_filter(tr("Intel HEX, 8085 source or BASIC text"), &["hex", "ihx", "asm", "a85", "bas", "txt"])
-            .add_filter(tr("All files"), &["*"])
-            .pick_file()
-        else {
-            return;
-        };
+        self.pick(
+            Pick::Send(port),
+            rfd::FileDialog::new()
+                .set_title(trf!("Send file to DB9-{}", port))
+                .add_filter(tr("Intel HEX, 8085 source or BASIC text"), &["hex", "ihx", "asm", "a85", "bas", "txt"])
+                .add_filter(tr("All files"), &["*"]),
+        );
+    }
+
+    fn send_file_path(&mut self, port: u8, path: &Path) {
+        let path = path.to_path_buf();
         let text = match ext_of(&path).as_str() {
-            "asm" | "a85" => match std::fs::read_to_string(&path).map_err(|e| e.to_string()).and_then(|t| {
+            "asm" | "a85" => match fs::read_to_string(&path).map_err(|e| e.to_string()).and_then(|t| {
                 asm::assemble(&t).map_err(|e| e.to_string())
             }) {
                 Ok(o) => image_to_hex(&o.image),
                 Err(e) => return self.error(tr("Couldn't assemble"), e),
             },
-            _ => match std::fs::read_to_string(&path) {
+            _ => match fs::read_to_string(&path) {
                 Ok(t) => t,
                 Err(e) => return self.error(tr("Couldn't read the file"), e.to_string()),
             },
@@ -790,9 +874,9 @@ impl App {
             return;
         };
         let res = if ext_of(&path) == "bin" {
-            std::fs::write(&path, &data)
+            fs::write(&path, &data)
         } else {
-            std::fs::write(&path, loader::write_ihex(start, &data))
+            fs::write(&path, loader::write_ihex(start, &data))
         };
         match res {
             Ok(()) => self.status = trf!("Saved {}–{} to {}", format!("{start:04X}"), format!("{end:04X}"), file_name(&path)),
@@ -936,9 +1020,7 @@ impl App {
             ui.menu_button(tr("File"), |ui| {
                 if ui.button(tr("Load program…")).clicked() {
                     ui.close();
-                    if let Some(p) = pick_program() {
-                        self.load_program(&p);
-                    }
+                    self.pick(Pick::Program, program_dialog());
                 }
                 let last = self.settings.last_program.clone();
                 if ui.add_enabled(last.is_some(), egui::Button::new(tr("Reload last program"))).clicked() {
@@ -953,9 +1035,12 @@ impl App {
                 }
                 ui.separator();
                 ui.menu_button(tr("Monitor ROM"), |ui| self.rom_menu(ui));
-                ui.separator();
-                if ui.button(tr("Quit")).clicked() {
-                    ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+                #[cfg(not(target_arch = "wasm32"))]
+                {
+                    ui.separator();
+                    if ui.button(tr("Quit")).clicked() {
+                        ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+                    }
                 }
             });
             ui.menu_button(tr("Machine"), |ui| {
@@ -1068,9 +1153,7 @@ impl App {
                 self.press(Key::Reset, time);
             }
             if ui.button(tr("📂 Load program")).on_hover_text(tr(".hex, .bin or .asm into RAM")).clicked() {
-                if let Some(p) = pick_program() {
-                    self.load_program(&p);
-                }
+                self.pick(Pick::Program, program_dialog());
             }
             let last = self.settings.last_program.clone();
             if ui
@@ -1284,15 +1367,16 @@ impl App {
     }
 
     fn paste_into_terminal(&mut self) {
-        match arboard::Clipboard::new().and_then(|mut c| c.get_text()) {
-            Ok(t) => {
-                let t = if self.settings.force_upper { t.to_ascii_uppercase() } else { t };
-                let t = t.replace("\r\n", "\r").replace('\n', "\r");
-                self.send_terminal(t.as_bytes());
-                self.target = Target::Terminal;
-            }
-            Err(e) => self.status = trf!("Nothing to paste ({})", e),
+        if let Some(t) = self.clipboard_text(PasteTo::Terminal) {
+            self.paste_text_into_terminal(t);
         }
+    }
+
+    fn paste_text_into_terminal(&mut self, t: String) {
+        let t = if self.settings.force_upper { t.to_ascii_uppercase() } else { t };
+        let t = t.replace("\r\n", "\r").replace('\n', "\r");
+        self.send_terminal(t.as_bytes());
+        self.target = Target::Terminal;
     }
 
     fn status_bar(&mut self, ui: &mut egui::Ui) {
@@ -1500,21 +1584,11 @@ impl App {
     // ----- tape recorder ------------------------------------------------------
 
     fn pick_wav(&mut self) {
-        if let Some(p) = rfd::FileDialog::new()
-            .set_title(tr("Load tape (WAV)"))
-            .add_filter(tr("WAV audio"), &["wav"])
-            .pick_file()
-        {
-            if self.m.board.tape.modified {
-                self.confirm = Some(Confirm::LoadWav(p));
-            } else {
-                self.load_wav(&p);
-            }
-        }
+        self.pick(Pick::Wav, rfd::FileDialog::new().set_title(tr("Load tape (WAV)")).add_filter(tr("WAV audio"), &["wav"]));
     }
 
     fn load_wav(&mut self, p: &Path) {
-        match std::fs::read(p).map_err(|e| e.to_string()).and_then(|b| Tape::from_wav(&b)) {
+        match fs::read(p).map_err(|e| e.to_string()).and_then(|b| Tape::from_wav(&b)) {
             Ok(mut t) => {
                 t.name = Some(file_name(p));
                 let secs = t.seconds(t.len() as f64);
@@ -1534,7 +1608,7 @@ impl App {
             .set_file_name(name)
             .save_file()
         {
-            match std::fs::write(&p, self.m.board.tape.to_wav()) {
+            match fs::write(&p, self.m.board.tape.to_wav()) {
                 Ok(()) => {
                     self.m.board.tape.modified = false;
                     self.m.board.tape.name = Some(file_name(&p));
@@ -1996,9 +2070,20 @@ impl eframe::App for App {
         crate::signal_ready();
         let ctx = ui.ctx().clone();
         // drag and drop
-        let dropped: Vec<PathBuf> = ctx.input(|i| i.raw.dropped_files.iter().map(|f| f.path().to_path_buf()).filter(|p| !p.as_os_str().is_empty()).collect());
-        for p in dropped {
-            self.load_program(&p);
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let dropped: Vec<PathBuf> = ctx.input(|i| i.raw.dropped_files.iter().map(|f| f.path().to_path_buf()).filter(|p| !p.as_os_str().is_empty()).collect());
+            for p in dropped {
+                self.load_program(&p);
+            }
+        }
+        // in the browser a dropped file has to be read first (it arrives as a pick)
+        #[cfg(target_arch = "wasm32")]
+        {
+            for f in ctx.input(|i| i.raw.dropped_files.clone()) {
+                crate::web::dropped(f);
+            }
+            self.web_events(&ctx);
         }
         // a right-click on the terminal makes egui report a new selection;
         // don't let that replace what the user dragged over
@@ -2356,12 +2441,28 @@ fn file_name(p: &Path) -> String {
     p.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()
 }
 
-fn pick_program() -> Option<PathBuf> {
+fn program_dialog() -> rfd::FileDialog {
     rfd::FileDialog::new()
         .set_title(tr("Load program into RAM"))
         .add_filter(tr("Programs"), &["hex", "ihx", "bin", "asm", "a85"])
         .add_filter(tr("All files"), &["*"])
-        .pick_file()
+}
+
+/// What a file chosen in an Open dialog is for.
+#[derive(Clone, Copy, Debug)]
+pub enum Pick {
+    Program,
+    Rom,
+    Editor,
+    Send(u8),
+    Wav,
+}
+
+/// Where text from the clipboard goes.
+#[derive(Clone, Copy, Debug)]
+pub enum PasteTo {
+    Terminal,
+    Editor,
 }
 
 fn image_to_hex(img: &Image) -> String {

@@ -132,6 +132,23 @@ message explains why and the report is saved in
 usually helps; in a virtual machine, turn on 3D acceleration. After a
 driver update, start it once with <code>mikrokit-emu.exe --renderer wgpu</code> to use
 the normal method again.</p>
+<h3 id="in-a-web-browser">In a web browser</h3>
+<p>Open <a href="https://firew4lker.github.io/MikroKit-Emu/">https://firew4lker.github.io/MikroKit-Emu/</a>. The same emulator runs in the page, with nothing to install;
+it needs a current browser on a computer (one with WebGL 2, which all
+current browsers have). A few things work differently there:</p>
+<ul>
+<li><strong>Open</strong> (Load program, Monitor ROM, the editor's 📂, Load WAV, Send
+  file) uploads a file from your computer. You can also drop a program file
+  on the page. The browser forgets uploaded files when the page is reloaded,
+  so <strong>Reload last program</strong> works only until then.</li>
+<li><strong>Save</strong> (the editor's 💾, Save memory range, Save WAV) downloads the file
+  to your Downloads folder.</li>
+<li><strong>Paste</strong>: Ctrl+V pastes into the terminal and the editor. Paste in the
+  right-click menus asks the browser for the clipboard, and the browser may
+  ask you to allow it first.</li>
+<li>Settings and the editor's text are kept by the browser for this site.</li>
+<li>There are no command-line options, and no Quit (close the tab).</li>
+</ul>
 <h3 id="building-from-the-source-code-linux-windows-macos">Building from the source code (Linux, Windows, macOS)</h3>
 <p>Install Rust from <a href="https://rustup.rs">https://rustup.rs</a>, then in the <code>emulator</code> folder run:</p>
 <pre><code class="language-bash">cargo run --release

@@ -5,6 +5,9 @@ Intel 8085 trainer made in Athens in the 1980s. It runs the kit's original
 monitor ROM (v5.12) unchanged, cycle by cycle at the board's real 3.072 MHz,
 and looks and behaves like the board.
 
+**Try it in your browser: <https://firew4lker.github.io/MikroKit-Emu/>** (nothing to install), or download it
+for Linux, Windows or Arch Linux below.
+
 ![MikroKit-Emu: a terminal session and the LCD example](docs/images/screenshot.png)
 
 The real Mikrokit, after a reset (the same `- 80 85` ready message):
@@ -30,7 +33,7 @@ The real Mikrokit, after a reset (the same `- 80 85` ready message):
 - **HD44780 LCD**: a 16x2 or 20x4 character LCD on port B in 4-bit mode.
 - **Debug panel**: registers, disassembly, breakpoints, memory view.
 - **English and Greek** interface, light and dark themes.
-- Linux, Windows (and macOS from source).
+- Linux, Windows, a web browser (and macOS from source).
 
 ## Download
 
@@ -59,6 +62,7 @@ Ready-made builds are on the [Releases page](https://github.com/firew4lker/Mikro
 | `roms/` | the original monitor 5.12 and the monitor + Tiny BASIC (source and image) |
 | `examples/` | example programs in assembly and Tiny BASIC |
 | `docs/` | the user manuals (Markdown, HTML, PDF) and their screenshots |
+| `web/` | the browser version: its page and build script (published by `.github/workflows/pages.yml`) |
 | `kicad/` | the KiCad 10 schematic and the script that generates it |
 | `Original Documentation/` | Micro Design's original manuals and files (Greek), and a photo of the board |
 | `packaging/arch/` | the Arch Linux PKGBUILD |
